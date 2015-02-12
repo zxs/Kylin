@@ -94,7 +94,7 @@ public class RangeKeyDistributionJob extends AbstractHadoopJob {
 
             this.deletePath(job.getConfiguration(), output);
 
-            String cubeName = getOptionValue(OPTION_CUBE_NAME).toUpperCase();
+            String cubeName = getOptionValue(OPTION_CUBE_NAME).toLowerCase();
             CubeManager cubeMgr = CubeManager.getInstance(KylinConfig.getInstanceFromEnv());
             CubeInstance cube = cubeMgr.getCube(cubeName);
             CubeCapacity cubeCapacity = cube.getDescriptor().getCapacity();

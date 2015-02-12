@@ -95,7 +95,7 @@ public class JobDAOTest extends LocalFileMetadataTestCase {
             JobInstance jobInstance = new JobInstance();
             jobInstance.setUuid(uuid);
             jobInstance.setType(CubeBuildTypeEnum.BUILD);
-            jobInstance.setRelatedCube("test_kylin_cube_with_slr".toUpperCase());
+            jobInstance.setRelatedCube("test_kylin_cube_with_slr".toLowerCase());
             jobInstance.setName("Dummy_Job");
             // jobInstance.setStatus(JobStatusEnum.PENDING);
 

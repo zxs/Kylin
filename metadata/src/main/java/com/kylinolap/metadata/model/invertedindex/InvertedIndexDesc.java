@@ -58,11 +58,11 @@ public class InvertedIndexDesc extends RootPersistentEntity {
     public void init(MetadataManager mgr) {
         config = mgr.getConfig();
 
-        factTable = factTable.toUpperCase();
-        timestampDimension = timestampDimension.toUpperCase();
-        StringUtil.toUpperCaseArray(bitmapDimensions, bitmapDimensions);
-        StringUtil.toUpperCaseArray(valueDimensions, valueDimensions);
-        StringUtil.toUpperCaseArray(metrics, metrics);
+        factTable = factTable.toLowerCase();
+        timestampDimension = timestampDimension.toLowerCase();
+        StringUtil.toLowerCaseArray(bitmapDimensions, bitmapDimensions);
+        StringUtil.toLowerCaseArray(valueDimensions, valueDimensions);
+        StringUtil.toLowerCaseArray(metrics, metrics);
 
         tableDesc = mgr.getTableDesc(factTable);
         bitmapCols = new int[bitmapDimensions.length];

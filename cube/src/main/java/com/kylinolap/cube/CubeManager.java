@@ -120,7 +120,7 @@ public class CubeManager {
     }
 
     public CubeInstance getCube(String cubeName) {
-        cubeName = cubeName.toUpperCase();
+        cubeName = cubeName.toLowerCase();
         return cubeMap.get(cubeName);
     }
 
@@ -133,7 +133,7 @@ public class CubeManager {
      */
     public List<CubeInstance> getCubesByDesc(String descName) {
 
-        descName = descName.toUpperCase();
+        descName = descName.toLowerCase();
         List<CubeInstance> list = listAllCubes();
         List<CubeInstance> result = new ArrayList<CubeInstance>();
         Iterator<CubeInstance> it = list.iterator();
@@ -411,7 +411,7 @@ public class CubeManager {
      * @param cube
      */
     public void removeCubeCache(CubeInstance cube) {
-        cubeMap.remove(cube.getName().toUpperCase());
+        cubeMap.remove(cube.getName().toLowerCase());
 
         for (CubeSegment segment : cube.getSegments()) {
             usedStorageLocation.remove(segment.getName());
@@ -519,7 +519,7 @@ public class CubeManager {
 
     private void afterCubeUpdated(CubeInstance updatedCube) {
         MetadataManager.getInstance(config).reload();
-        cubeMap.put(updatedCube.getName().toUpperCase(), updatedCube);
+        cubeMap.put(updatedCube.getName().toLowerCase(), updatedCube);
 
         for (ProjectInstance project : ProjectManager.getInstance(config).getProjects(updatedCube.getName())) {
             try {
@@ -629,7 +629,7 @@ public class CubeManager {
             if (StringUtils.isBlank(cubeInstance.getName()))
                 throw new IllegalStateException("CubeInstance name must not be blank");
 
-            cubeMap.putLocal(cubeInstance.getName().toUpperCase(), cubeInstance);
+            cubeMap.putLocal(cubeInstance.getName().toLowerCase(), cubeInstance);
 
             for (CubeSegment segment : cubeInstance.getSegments()) {
                 usedStorageLocation.add(segment.getName());

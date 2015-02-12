@@ -61,7 +61,7 @@ public class IIDistinctColumnsJob extends AbstractHadoopJob {
             parseOptions(options, args);
 
             job = Job.getInstance(getConf(), getOptionValue(OPTION_JOB_NAME));
-            String tableName = getOptionValue(OPTION_TABLE_NAME).toUpperCase();
+            String tableName = getOptionValue(OPTION_TABLE_NAME).toLowerCase();
             Path input = new Path(getOptionValue(OPTION_INPUT_PATH));
             String inputFormat = getOptionValue(OPTION_INPUT_FORMAT);
             String inputDelim = getOptionValue(OPTION_INPUT_DELIM);

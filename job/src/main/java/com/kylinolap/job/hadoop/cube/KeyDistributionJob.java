@@ -82,7 +82,7 @@ package com.kylinolap.job.hadoop.cube;
 //            String keyColumnPercentage = getOptionValue(OPTION_KEY_COLUMN_PERCENTAGE);
 //            job.getConfiguration().set(KEY_COLUMN_PERCENTAGE, keyColumnPercentage);
 //            String metadataUrl = validateMetadataUrl(getOptionValue(OPTION_METADATA_URL));
-//            String cubeName = getOptionValue(OPTION_CUBE_NAME).toUpperCase();
+//            String cubeName = getOptionValue(OPTION_CUBE_NAME).toLowerCase();
 //            int keyHeaderLen = getKeyHeaderLength(metadataUrl, cubeName);
 //            job.getConfiguration().set(KEY_HEADER_LENGTH, String.valueOf(keyHeaderLen));
 //            job.getConfiguration().set(KEY_SPLIT_NUMBER, getOptionValue(OPTION_KEY_SPLIT_NUMBER));

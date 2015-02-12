@@ -100,10 +100,10 @@ public class TableDesc extends RootPersistentEntity {
 
     public void init() {
         if (name != null)
-            name = name.toUpperCase();
+            name = name.toLowerCase();
 
         if (getDatabase() != null)
-            setDatabase(getDatabase().toUpperCase());
+            setDatabase(getDatabase().toLowerCase());
 
         if (columns != null) {
             Arrays.sort(columns, new Comparator<ColumnDesc>() {

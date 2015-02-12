@@ -30,7 +30,7 @@ public class DatabaseDesc {
      * @return the name
      */
     public String getName() {
-        return name.toUpperCase();
+        return name.toLowerCase();
     }
 
     /**

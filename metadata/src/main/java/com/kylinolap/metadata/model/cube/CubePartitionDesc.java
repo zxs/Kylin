@@ -47,9 +47,9 @@ public class CubePartitionDesc {
             String[] columns = partitionDateColumn.split("\\.");
 
             if (null != columns && columns.length == 2) {
-                Map<String, TblColRef> cols = columnMap.get(columns[0].toUpperCase());
+                Map<String, TblColRef> cols = columnMap.get(columns[0].toLowerCase());
                 if (cols != null)
-                    partitionDateColumnRef = cols.get(columns[1].toUpperCase());
+                    partitionDateColumnRef = cols.get(columns[1].toLowerCase());
 
             }
         }

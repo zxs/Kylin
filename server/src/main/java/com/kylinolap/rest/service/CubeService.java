@@ -526,7 +526,7 @@ public class CubeService extends BasicService {
             JsonUtil.writeValueIndent(bos, tableExd);
             System.out.println(bos.toString());
             ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-            String xPath = ResourceStore.TABLE_EXD_RESOURCE_ROOT + "/" + tableName.toUpperCase() + "." + HiveSourceTableLoader.OUTPUT_SURFIX;
+            String xPath = ResourceStore.TABLE_EXD_RESOURCE_ROOT + "/" + tableName.toLowerCase() + "." + HiveSourceTableLoader.OUTPUT_SURFIX;
             writeResource(bis, KylinConfig.getInstanceFromEnv(), xPath);
         } catch (JsonGenerationException e) {
             e.printStackTrace();

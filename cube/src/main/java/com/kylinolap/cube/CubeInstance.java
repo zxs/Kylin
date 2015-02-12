@@ -261,7 +261,7 @@ public class CubeInstance extends RootPersistentEntity {
     }
 
     public String getDescName() {
-        return descName.toUpperCase();
+        return descName.toLowerCase();
     }
 
     public String getOriginDescName() {

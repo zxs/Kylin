@@ -311,7 +311,7 @@ public class ProjectManager {
 
     public List<CubeInstance> getCubesByTable(String project, String tableName) {
         project = ProjectInstance.getNormalizedProjectName(project);
-        tableName = tableName.toUpperCase();
+        tableName = tableName.toLowerCase();
         List<CubeInstance> cubes = new ArrayList<CubeInstance>();
 
         ProjectTable projectTable = getProjectTable(project, tableName);
@@ -322,7 +322,7 @@ public class ProjectManager {
 
     public List<CubeInstance> getOnlineCubesByFactTable(String project, String factTableName) {
         project = ProjectInstance.getNormalizedProjectName(project);
-        factTableName = factTableName.toUpperCase();
+        factTableName = factTableName.toLowerCase();
         List<CubeInstance> cubes = new ArrayList<CubeInstance>();
         ProjectTable projectTable = this.getProjectTable(project, factTableName);
         for (CubeInstance cube : projectTable.getCubes()) {
@@ -335,7 +335,7 @@ public class ProjectManager {
     }
 
     public List<MeasureDesc> listEffectiveRewriteMeasures(String project, String factTable) {
-        factTable = factTable.toUpperCase();
+        factTable = factTable.toLowerCase();
 
         HashSet<CubeDesc> relatedDesc = new HashSet<CubeDesc>();
         for (CubeInstance cube : getProjectTable(project, factTable).getCubes()) {
@@ -422,9 +422,9 @@ public class ProjectManager {
             throw new IllegalStateException("Project name must not be blank");
 
         if (triggerUpdate) {
-            projectMap.put(projectInstance.getName().toUpperCase(), projectInstance);
+            projectMap.put(projectInstance.getName().toLowerCase(), projectInstance);
         } else {
-            projectMap.putLocal(projectInstance.getName().toUpperCase(), projectInstance);
+            projectMap.putLocal(projectInstance.getName().toLowerCase(), projectInstance);
         }
 
         return projectInstance;

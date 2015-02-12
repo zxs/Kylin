@@ -143,13 +143,13 @@ public class HiveSourceTableLoader {
         List<String> loadedTables = Lists.newArrayList();
         
         for (TableDesc table : tableDescList) {
-            File file = new File(tableDescDir, table.getName().toUpperCase() + "." + OUTPUT_SURFIX);
+            File file = new File(tableDescDir, table.getName().toLowerCase() + "." + OUTPUT_SURFIX);
             JsonUtil.writeValueIndent(new FileOutputStream(file), table);
             loadedTables.add(table.getDatabase() + "." + table.getName());
         }
 
         for (Map<String, String> tableAttrs : tableAttrsList) {
-            File file = new File(tableExdDir, tableAttrs.get("tableName").toUpperCase() + "." + OUTPUT_SURFIX);
+            File file = new File(tableExdDir, tableAttrs.get("tableName").toLowerCase() + "." + OUTPUT_SURFIX);
             JsonUtil.writeValueIndent(new FileOutputStream(file), tableAttrs);
         }
         return loadedTables;
@@ -194,8 +194,8 @@ public class HiveSourceTableLoader {
             if (line.startsWith("columns")) {// geneate source table metadata
                 String tname = tableAttrs.get("tableName");
 
-                tableDesc.setDatabase(database.toUpperCase());
-                tableDesc.setName(tname.toUpperCase());
+                tableDesc.setDatabase(database.toLowerCase());
+                tableDesc.setName(tname.toLowerCase());
                 tableDesc.setUuid(UUID.randomUUID().toString());
                 addColumns(tableDesc, value);
             }
@@ -222,7 +222,7 @@ public class HiveSourceTableLoader {
             String colType = t1.substring(0, pos).trim();
             String colName = t1.substring(pos).trim();
             ColumnDesc cdesc = new ColumnDesc();
-            cdesc.setName(colName.toUpperCase());
+            cdesc.setName(colName.toLowerCase());
             cdesc.setDatatype(convertType(colType));
             cdesc.setId(String.valueOf(i + 1));
             columns.add(cdesc);

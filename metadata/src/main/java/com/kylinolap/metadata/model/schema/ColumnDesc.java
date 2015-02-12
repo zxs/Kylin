@@ -109,7 +109,7 @@ public class ColumnDesc {
         this.table = table;
 
         if (name != null)
-            name = name.toUpperCase();
+            name = name.toLowerCase();
 
         if (id != null)
             zeroBasedIndex = Integer.parseInt(id) - 1;

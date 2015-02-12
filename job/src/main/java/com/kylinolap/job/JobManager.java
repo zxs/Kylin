@@ -203,7 +203,7 @@ public class JobManager {
             List<JobInstance> filtedJobs = new ArrayList<JobInstance>();
             ProjectInstance project = ProjectManager.getInstance(config).getProject(projectName);
             for (JobInstance job : jobs) {
-                if (project.getCubes().contains(job.getRelatedCube().toUpperCase())) {
+                if (project.getCubes().contains(job.getRelatedCube().toLowerCase())) {
                     filtedJobs.add(job);
                 }
             }

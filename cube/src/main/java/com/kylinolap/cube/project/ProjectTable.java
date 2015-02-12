@@ -37,7 +37,7 @@ public class ProjectTable {
      */
     public ProjectTable(String name) {
         super();
-        this.name = name.toUpperCase();
+        this.name = name.toLowerCase();
     }
 
     public String getName() {

@@ -347,7 +347,7 @@ public class CubeController extends BasicController {
 
         // Check if the cube is editable
         if (!cubeService.isCubeDescEditable(desc)) {
-            String error = "Cube desc " + desc.getName().toUpperCase() + " is not editable.";
+            String error = "Cube desc " + desc.getName().toLowerCase() + " is not editable.";
             updateRequest(cubeRequest, false, error);
             return cubeRequest;
         }

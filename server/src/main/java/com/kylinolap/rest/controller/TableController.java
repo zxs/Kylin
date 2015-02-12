@@ -131,7 +131,7 @@ public class TableController extends BasicController {
                 for (String loadedTable : loadedTables) {
                     int cut = loadedTable.indexOf('.');
                     String tableName = cut >= 0 ? loadedTable.substring(cut + 1).trim() : loadedTable.trim();
-                    if (inputTable.trim().toUpperCase().equals(tableName)||inputTable.trim().toUpperCase().equals(loadedTable)) {
+                    if (inputTable.trim().toLowerCase().equals(tableName)||inputTable.trim().toLowerCase().equals(loadedTable)) {
                         tableLoaded = true;
                         break;
                     }

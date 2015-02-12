@@ -132,7 +132,7 @@ public class DeployUtil {
         File temp = File.createTempFile("temp", ".csv");
         temp.createNewFile();
         for (String tablename : TABLE_NAMES) {
-            tablename = tablename.toUpperCase();
+            tablename = tablename.toLowerCase();
 
             File localBufferFile = new File(temp.getParent() + "/" + tablename + ".csv");
             localBufferFile.createNewFile();
@@ -150,11 +150,11 @@ public class DeployUtil {
         temp.delete();
 
         // create hive tables
-        execHiveCommand(generateCreateTableHql(metaMgr.getTableDesc(TABLE_CAL_DT.toUpperCase())));
-        execHiveCommand(generateCreateTableHql(metaMgr.getTableDesc(TABLE_CATEGORY_GROUPINGS.toUpperCase())));
-        execHiveCommand(generateCreateTableHql(metaMgr.getTableDesc(TABLE_KYLIN_FACT.toUpperCase())));
-        execHiveCommand(generateCreateTableHql(metaMgr.getTableDesc(TABLE_SELLER_TYPE_DIM.toUpperCase())));
-        execHiveCommand(generateCreateTableHql(metaMgr.getTableDesc(TABLE_SITES.toUpperCase())));
+        execHiveCommand(generateCreateTableHql(metaMgr.getTableDesc(TABLE_CAL_DT.toLowerCase())));
+        execHiveCommand(generateCreateTableHql(metaMgr.getTableDesc(TABLE_CATEGORY_GROUPINGS.toLowerCase())));
+        execHiveCommand(generateCreateTableHql(metaMgr.getTableDesc(TABLE_KYLIN_FACT.toLowerCase())));
+        execHiveCommand(generateCreateTableHql(metaMgr.getTableDesc(TABLE_SELLER_TYPE_DIM.toLowerCase())));
+        execHiveCommand(generateCreateTableHql(metaMgr.getTableDesc(TABLE_SITES.toLowerCase())));
 
         // load data to hive tables
         // LOAD DATA LOCAL INPATH 'filepath' [OVERWRITE] INTO TABLE tablename
@@ -171,7 +171,7 @@ public class DeployUtil {
     }
 
     private static String generateLoadDataHql(String tableName) {
-        return "LOAD DATA LOCAL INPATH '" + config().getCliWorkingDir() + "/" + tableName.toUpperCase() + ".csv' OVERWRITE INTO TABLE " + tableName.toUpperCase();
+        return "LOAD DATA LOCAL INPATH '" + config().getCliWorkingDir() + "/" + tableName.toLowerCase() + ".csv' OVERWRITE INTO TABLE " + tableName.toLowerCase();
     }
 
     private static String generateCreateTableHql(TableDesc tableDesc) {

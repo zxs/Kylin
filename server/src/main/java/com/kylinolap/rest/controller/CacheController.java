@@ -75,7 +75,7 @@ public class CacheController extends BasicController {
         case CUBE:
             logger.debug("Reload cube " + name + " with type:" + type + ", event type " + event);
             cubeMgmtService.reloadMetadataCache();
-            if ("ALL".equalsIgnoreCase(name.toUpperCase())) {
+            if ("ALL".equalsIgnoreCase(name.toLowerCase())) {
                 cubeMgmtService.cleanDataCache();
                 break;
             }
@@ -93,7 +93,7 @@ public class CacheController extends BasicController {
         case PROJECT:
             logger.debug("Reload project " + name + " with type:" + type + ", event type " + event);
             cubeMgmtService.reloadMetadataCache();
-            if ("ALL".equalsIgnoreCase(name.toUpperCase())) {
+            if ("ALL".equalsIgnoreCase(name.toLowerCase())) {
                 projectService.cleanDataCache();
                 break;
             }

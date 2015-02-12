@@ -43,7 +43,7 @@ import com.kylinolap.job.constant.BatchConstants;
 
 /**
  * @author yangli9
- * 
+ *
  */
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class MockupMapContext {
@@ -164,6 +164,11 @@ public class MockupMapContext {
             }
 
             @Override
+            public boolean userClassesTakesPrecedence() {
+                return false;
+            }
+
+          @Override
             public Class<? extends InputFormat<?, ?>> getInputFormatClass() throws ClassNotFoundException {
                 throw new NotImplementedException();
             }

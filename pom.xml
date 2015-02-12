@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.kylinolap</groupId>
     <artifactId>kylin</artifactId>
@@ -16,11 +17,12 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Hadoop versions -->
-        <hadoop2.version>2.6.0</hadoop2.version>
-        <yarn.version>2.6.0</yarn.version>
-        <hbase-hadoop2.version>0.98.4-hadoop2</hbase-hadoop2.version>
-        <zookeeper.version>3.4.6</zookeeper.version>
-        <hive.version>0.14.0</hive.version>
+        <ver.cdh5>5.3.0</ver.cdh5>
+        <hadoop2.version>2.5.0-cdh${ver.cdh5}</hadoop2.version>
+        <yarn.version>2.5.0-cdh${ver.cdh5}</yarn.version>
+        <hbase-hadoop2.version>0.98.6-cdh${ver.cdh5}</hbase-hadoop2.version>
+        <zookeeper.version>3.4.5-cdh${ver.cdh5}</zookeeper.version>
+        <hive.version>0.13.1-cdh${ver.cdh5}</hive.version>
 
         <!-- Dependency versions -->
         <antlr.version>3.4</antlr.version>
@@ -40,7 +42,7 @@
 
         <!-- Utility -->
         <log4j.version>1.2.17</log4j.version>
-        <slf4j.version>1.6.4</slf4j.version>
+        <slf4j.version>1.7.5</slf4j.version>
         <jackson.version>2.2.3</jackson.version>
         <guava.version>12.0.1</guava.version>
         <jsch.version>0.1.51</jsch.version>
@@ -57,7 +59,7 @@
         <linq4j.version>0.4</linq4j.version>
 
         <!-- Metrics Codahale Version -->
-        <metrics.version>3.0.1</metrics.version>
+        <metrics.version>3.0.2</metrics.version>
 
         <!-- Quartz Version -->
         <quartz.version>2.2.1</quartz.version>
@@ -70,7 +72,8 @@
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
         <sonar.language>java</sonar.language>
-        <sonar.jacoco.excludes>com/kylinolap/**/tools/**:net/hydromatic/optiq/**:org/eigenbase/sql2rel/**</sonar.jacoco.excludes>
+        <sonar.jacoco.excludes>com/kylinolap/**/tools/**:net/hydromatic/optiq/**:org/eigenbase/sql2rel/**
+        </sonar.jacoco.excludes>
     </properties>
 
     <dependencyManagement>
@@ -135,11 +138,23 @@
                 <groupId>org.apache.hbase</groupId>
                 <artifactId>hbase-hadoop2-compat</artifactId>
                 <version>${hbase-hadoop2.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-core</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.hbase</groupId>
                 <artifactId>hbase-common</artifactId>
                 <version>${hbase-hadoop2.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-core</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.hbase</groupId>
@@ -150,6 +165,12 @@
                 <groupId>org.apache.hbase</groupId>
                 <artifactId>hbase-server</artifactId>
                 <version>${hbase-hadoop2.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.hadoop</groupId>
+                        <artifactId>hadoop-core</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.mrunit</groupId>
@@ -439,16 +460,12 @@
                     <groupId>org.antlr</groupId>
                     <artifactId>antlr3-maven-plugin</artifactId>
                     <version>${antlr.version}</version>
-                    <executions>
-                        <execution>
-                            <configuration>
-                                <goals>
-                                    <goal>antlr</goal>
-                                </goals>
-                                <debug>false</debug>
-                            </configuration>
-                        </execution>
-                    </executions>
+                    <goals>
+                        <goal>antlr</goal>
+                    </goals>
+                    <configuration>
+                        <debug>false</debug>
+                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -493,8 +510,8 @@
         <connection>scm:git:git@github.com:KylinOLAP/Kylin.git</connection>
         <url>scm:git:git@github.com:KylinOLAP/Kylin.git</url>
         <developerConnection>scm:git:git@github.com:KylinOLAP/Kylin.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <modules>
         <module>atopcalcite</module>
@@ -506,7 +523,7 @@
         <module>storage</module>
         <module>query</module>
         <module>server</module>
-		<module>jdbc</module>
+        <module>jdbc</module>
     </modules>
     <profiles>
         <profile>

@@ -137,7 +137,7 @@ public class MetadataManager {
      * @return
      */
     public TableDesc getTableDesc(String tableName) {
-        tableName = tableName.toUpperCase();
+        tableName = tableName.toLowerCase();
         return srcTableMap.get(tableName);
     }
 
@@ -148,7 +148,7 @@ public class MetadataManager {
      * @return
      */
     public Map<String, String> getTableDescExd(String tableName) {
-        tableName = tableName.toUpperCase();
+        tableName = tableName.toLowerCase();
         Map<String, String> result = new HashMap<String, String>();
         if (srcTableExdMap.containsKey(tableName)) {
             Map<String, String> tmp = srcTableExdMap.get(tableName);
@@ -248,7 +248,7 @@ public class MetadataManager {
         for (String path : paths) {
             Map<String, String> attrContainer = new HashMap<String, String>();
             String tableName = loadSourceTableExd(getStore(), path, attrContainer);
-            srcTableExdMap.putLocal(tableName.toUpperCase(), attrContainer);
+            srcTableExdMap.putLocal(tableName.toLowerCase(), attrContainer);
         }
         logger.debug("Loaded " + paths.size() + " SourceTable EXD(s)");
     }
