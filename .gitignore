@@ -2,7 +2,6 @@
 *.pydevproject
 .metadata
 .gradle
-bin/
 tmp/
 *.tmp
 *.bak
@@ -67,3 +66,19 @@ org.eclipse.m2e.core.prefs
 org.eclipse.wst.common.component
 org.eclipse.wst.common.project.facet.core.xml
 org.eclipse.wst.validation.prefs
+server/.settings/.jsdtscope
+server/.settings/org.eclipse.wst.common.project.facet.core.prefs.xml
+server/.settings/org.eclipse.wst.jsdt.ui.superType.container
+server/.settings/org.eclipse.wst.jsdt.ui.superType.name
+#web
+webapp/app/WEB-INF/*
+webapp/dist
+webapp/node_modules:
+webapp/CHANGELOG.md
+
+# package file
+tomcat
+lib
+*.tgz
+*.tar.gz
+webapp/app/components/*

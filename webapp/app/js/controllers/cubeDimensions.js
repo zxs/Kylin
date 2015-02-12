@@ -1,6 +1,25 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 'use strict';
 
-KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
+KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal,MetaModel) {
+
     // Available columns list derived from cube data model.
     $scope.availableColumns = {};
 
@@ -10,37 +29,6 @@ KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
     // Available tables cache: 1st is the fact table, next are lookup tables.
     $scope.availableTables = [];
 
-    // Do some cube dimensions adaption between new and old cube schema. TODO new cube schema change.
-    $scope.prepareDimensions = function (dimensions) {
-        angular.forEach(dimensions, function (dim) {
-            // Flatten hierarchy array by stripping level replacing with array index.
-            if (dim.hierarchy && dim.hierarchy.length) {
-                var flatten = [];
-
-                angular.forEach(dim.hierarchy, function (value) {
-                    flatten.push(value.column);
-                });
-
-                dim.hierarchy = flatten;
-            }
-        });
-    };
-
-    $scope.prepareDimensions($scope.cubeMetaFrame.dimensions);
-
-    // Helper func to get join info from cube data model.
-    var getJoin = function (tableName) {
-        var join = null;
-
-        for (var j = 0; j < $scope.cubeMetaFrame.model.lookups.length; j++) {
-            if ($scope.cubeMetaFrame.model.lookups[j].table == tableName) {
-                join = $scope.cubeMetaFrame.model.lookups[j].join;
-                break;
-            }
-        }
-
-        return join;
-    };
 
     /**
      * Helper func to get columns that dimensions based on, three cases:
@@ -58,8 +46,8 @@ KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
         }
 
         // Case 2.
-        if (dim.hierarchy && dim.hierarchy.length) {
-            referredCols = referredCols.concat(dim.hierarchy);
+        if (dim.hierarchy && dim.column.length) {
+            referredCols = referredCols.concat(dim.column);
         }
 
         // Case 1.
@@ -72,7 +60,7 @@ KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
 
     // Dump available columns plus column table name, whether is from lookup table.
     $scope.initColumns = function () {
-        var factTable = $scope.cubeMetaFrame.model.fact_table;
+        var factTable = $scope.metaModel.model.fact_table;
 
         // At first dump the columns of fact table.
         var cols = $scope.getColumnsByTable(factTable);
@@ -96,7 +84,7 @@ KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
         $scope.availableTables.push(factTable);
 
         // Then dump each lookup tables.
-        var lookups = $scope.cubeMetaFrame.model.lookups;
+        var lookups = $scope.metaModel.model.lookups;
 
         for (var j = 0; j < lookups.length; j++) {
             var cols2 = $scope.getColumnsByTable(lookups[j].table);
@@ -146,7 +134,7 @@ KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
 
     // Init the dimension, dimension name default as the column key. TODO new cube schema change.
     var Dimension = function (table, selectedCols, dimType) {
-        var origin = {name: '', table: table};
+        var origin = {name: '', table: table,hierarchy:false,derived:null,column:null};
 
         switch (dimType) {
             case 'normal':
@@ -155,7 +143,7 @@ KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
                     origin.name = table + '.' + selectedCols[0];
                 }
 
-                origin.column = selectedCols[0];
+                origin.column = selectedCols;
                 break;
 
             case 'derived':
@@ -163,7 +151,6 @@ KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
                     origin.name = table + '_derived';
                 }
 
-                origin.column = '{FK}';
                 origin.derived = selectedCols;
                 break;
 
@@ -172,7 +159,8 @@ KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
                     origin.name = table + '_hierarchy';
                 }
 
-                origin.hierarchy = selectedCols;
+                origin.hierarchy = true;
+                origin.column = selectedCols;
                 break;
         }
 
@@ -187,7 +175,7 @@ KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
             types.push('derived');
         }
 
-        if (dim.hierarchy && dim.hierarchy.length) {
+        if (dim.hierarchy && dim.column.length) {
             types.push('hierarchy');
         }
 
@@ -339,7 +327,7 @@ KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
         var selectedCols = $scope.getSelectedCols();
 
         angular.forEach(selectedCols, function (cols, table) {
-            if ($scope.cubeMetaFrame.model.fact_table == table) {
+            if ($scope.metaModel.model.fact_table == table) {
                 // Fact table: for each selected column, create one normal dimension.
                 for (var i = 0; i < cols.length; i++) {
                     dimList.push(Dimension(table, [cols[i]], 'normal'));
@@ -403,30 +391,10 @@ KylinApp.controller('CubeDimensionsCtrl', function ($scope, $modal) {
     }, true);
 
 
-    // Adapter between new data model/dimensions and original dimensions.
-    $scope.dimensionsAdapter = function () {
-        angular.forEach($scope.cubeMetaFrame.dimensions, function (dim) {
-            // Lookup table column, add 'join' info. TODO new cube schema change.
-            if (dim.derived && dim.derived.length) {
-                dim.join = getJoin(dim.table);
-            }
-
-            // Hierarchy level. TODO new cube schema change.
-            if (dim.hierarchy && dim.hierarchy.length) {
-                var h2 = [];
-
-                angular.forEach(dim.hierarchy, function (value, index) {
-                    h2.push({level: index + 1, column: value});
-                });
-
-                dim.hierarchy = h2;
-            }
-        });
-    };
 
     if ($scope.state.mode == 'edit') {
         $scope.$on('$destroy', function () {
-            $scope.dimensionsAdapter();
+           // $scope.dimensionsAdapter();
 
             // Emit dimensions edit event in order to re-generate row key.
             $scope.$emit('DimensionsEdited');

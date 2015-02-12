@@ -1,12 +1,29 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 'use strict';
 
-KylinApp.controller('CubeSchemaCtrl', function ($scope, QueryService, UserService, ProjectService, AuthenticationService) {
-    //~ Define metadata & class
-    $scope.capacities = ['SMALL', 'MEDIUM', 'LARGE'];
-    $scope.cubePartitionTypes = ['APPEND', 'UPDATE_INSERT'];
+KylinApp.controller('CubeSchemaCtrl', function ($scope, QueryService, UserService, ProjectService, AuthenticationService,$filter,ModelService,MetaModel) {
+
     $scope.projects = [];
     $scope.newDimension = null;
     $scope.newMeasure = null;
+
 
     $scope.wizardSteps = [
         {title: 'Cube Info', src: 'partials/cubeDesigner/info.html', isComplete: false},
@@ -23,24 +40,6 @@ KylinApp.controller('CubeSchemaCtrl', function ($scope, QueryService, UserServic
 
     $scope.curStep = $scope.wizardSteps[0];
 
-    var Measure = {
-        createNew: function () {
-            var measure = {
-                "id": "",
-                "name": "",
-                "function": {
-                    "expression": "",
-                    "returntype": "",
-                    "parameter": {
-                        "type": "",
-                        "value": ""
-                    }
-                }
-            };
-
-            return measure;
-        }
-    };
 
     // ~ init
     if (!$scope.state) {
@@ -48,8 +47,33 @@ KylinApp.controller('CubeSchemaCtrl', function ($scope, QueryService, UserServic
     }
 
     $scope.$watch('cube.detail', function (newValue, oldValue) {
-        if (newValue) {
+        if(!newValue){
+            return;
+        }
+        if (newValue&&$scope.state.mode==="view") {
             $scope.cubeMetaFrame = newValue;
+
+            // when viw state,each cubeSchema has its own metaModel
+            $scope.metaModel={
+                model:{}
+            }
+
+            //init model
+            ModelService.get({model_name: $scope.cubeMetaFrame.model_name}, function (model) {
+                if (model) {
+//                    $scope.metaModel = MetaModel;
+
+                    $scope.metaModel.model = model;
+
+                    //convert GMT mills ,to make sure partition date show GMT Date
+                    //should run only one time
+                    if($scope.metaModel.model.partition_desc&&$scope.metaModel.model.partition_desc.partition_date_start)
+                    {
+                        $scope.metaModel.model.partition_desc.partition_date_start+=new Date().getTimezoneOffset()*60000;
+                    }
+                }
+            });
+
         }
     });
 
@@ -60,11 +84,7 @@ KylinApp.controller('CubeSchemaCtrl', function ($scope, QueryService, UserServic
         if ($scope.cubeMode=="editExistCube"&&newValue && !newValue.project) {
             initProject();
         }
-        //convert from UTC to local timezone
-        //if($scope.cubeMetaFrame.cube_partition_desc.partition_date_start)
-        //{
-        //    $scope.cubeMetaFrame.cube_partition_desc.partition_date_start+=new Date().getTimezoneOffset()*60000;
-        //}
+
     });
 
     // ~ public methods
@@ -73,7 +93,7 @@ KylinApp.controller('CubeSchemaCtrl', function ($scope, QueryService, UserServic
     };
 
     $scope.addNewMeasure = function (measure) {
-        $scope.newMeasure = (!!measure)? measure:Measure.createNew();
+        $scope.newMeasure = (!!measure)? measure:CubeDescModel.createMeasure();
     };
 
     $scope.clearNewMeasure = function () {
@@ -149,8 +169,8 @@ KylinApp.controller('CubeSchemaCtrl', function ($scope, QueryService, UserServic
             if (cubeName) {
                 var projName = null;
                 angular.forEach($scope.projects, function (project, index) {
-                    angular.forEach(project.cubes, function (cube, index) {
-                        if (!projName && cube === cubeName.toUpperCase()) {
+                    angular.forEach(project.realizations, function (unit, index) {
+                        if (!projName && unit.type=="CUBE"&&unit.realization === cubeName) {
                             projName = project.name;
                         }
                     });

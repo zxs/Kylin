@@ -1,6 +1,29 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 'use strict';
 
-KylinApp.controller('CubeModelCtrl', function ($scope, $modal) {
+KylinApp.controller('CubeModelCtrl', function ($scope, $modal,cubeConfig,ModelService,MetaModel) {
+
+//    if($scope.state.mode==="edit") {
+//        $scope.metaModel = MetaModel;
+//    }
+    $scope.cubeConfig = cubeConfig;
     var DataModel = function () {
         return {
             name: '',
@@ -8,41 +31,6 @@ KylinApp.controller('CubeModelCtrl', function ($scope, $modal) {
             lookups: []
         };
     };
-
-    // Adapter between new data model and legacy cube schema.
-    $scope.prepareModel = function () {
-        if (!$scope.cubeMetaFrame.hasOwnProperty('model')) {
-            // Old version cube schema does not have model concept, try to build one based on legacy schema.
-            if ($scope.cubeMetaFrame.fact_table) {
-                // This is the case when editing cube.
-                var model = DataModel();
-
-                model.fact_table = $scope.cubeMetaFrame.fact_table;
-
-                // Get join relationships for old dimensions which using join.
-                var tables = [];
-
-                angular.forEach($scope.cubeMetaFrame.dimensions, function (dim) {
-                    // De-duplicate: adopt 1st one.
-                    if (tables.indexOf(dim.table) == -1 && dim.join && dim.join.primary_key.length) {
-                        tables.push(dim.table);
-                        model.lookups.push({table: dim.table, join: dim.join});
-                    }
-                });
-
-                $scope.cubeMetaFrame.model = model;
-            } else {
-                // This is the case when create new cube.
-                $scope.cubeMetaFrame.model = DataModel();
-            }
-
-            // Currently set model name same as cube name, hidden from user.
-            $scope.cubeMetaFrame.model.name = $scope.cubeMetaFrame.name;
-        }
-    };
-
-    // TODO this is for legacy cube schema.
-    $scope.prepareModel();
 
     var Lookup = function () {
         return {
@@ -64,7 +52,7 @@ KylinApp.controller('CubeModelCtrl', function ($scope, $modal) {
 
     $scope.newLookup = Lookup();
 
-    var lookupList = $scope.cubeMetaFrame.model.lookups;
+    var lookupList = $scope.metaModel.model.lookups;
 
     $scope.openLookupModal = function () {
         var modalInstance = $modal.open({
@@ -137,9 +125,9 @@ KylinApp.controller('CubeModelCtrl', function ($scope, $modal) {
     };
 
     // This is for legacy compatibility, assign 'fact_table' property. TODO new cube schema change.
-    $scope.$on('$destroy', function () {
-        if (!$scope.cubeMetaFrame.fact_table) {
-            $scope.cubeMetaFrame.fact_table = $scope.cubeMetaFrame.model.fact_table;
-        }
-    });
+//    $scope.$on('$destroy', function () {
+//        if (!$scope.cubeMetaFrame.fact_table) {
+//            $scope.cubeMetaFrame.fact_table = $scope.cubeMetaFrame.model.fact_table;
+//        }
+//    });
 });

@@ -1,3 +1,22 @@
+<!--
+* Licensed to the Apache Software Foundation (ASF) under one
+* or more contributor license agreements.  See the NOTICE file
+* distributed with this work for additional information
+* regarding copyright ownership.  The ASF licenses this file
+* to you under the Apache License, Version 2.0 (the
+* "License"); you may not use this file except in compliance
+* with the License.  You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+-->
+
+<div ng-controller="CubeAdvanceSettingCtrl">
 <div>
 
     <div class="form-group">
@@ -12,10 +31,11 @@
                             <label class="control-label col-xs-12 col-sm-3 no-padding-right font-color-default"><b>Cube Size</b></label>
                             <div class="col-xs-12 col-sm-6">
                                 <select class="form-control" ng-if="state.mode=='edit'" style="width: 360px;"
-                                        chosen ng-model="cubeMetaFrame.capacity" required
-                                        ng-options="cc as cc for cc in cubeCapacities">
+                                        chosen ng-model="metaModel.model.capacity" required
+                                        ng-options="cc as cc for cc in cubeConfig.cubeCapacities">
+                                    <option value=""></option>
                                 </select>
-                                <span ng-if="state.mode=='view'">{{cubeMetaFrame.capacity}}</span>
+                                <span ng-if="state.mode=='view'">{{metaModel.model.capacity}}</span>
                             </div>
                         </div>
                     </div>
@@ -46,6 +66,7 @@
                             ng-model="aggregation_groups" required chosen multiple
                             ng-change="refreshAggregationGroup(cubeMetaFrame.rowkey.aggregation_groups, $index, aggregation_groups)"
                             ng-options="rowkey_column.column as rowkey_column.column for rowkey_column in cubeMetaFrame.rowkey.rowkey_columns">
+                        <option value=""></option>
                     </select>
                     <p ng-if="state.mode=='view'" style="word-wrap: break-word; word-break: normal;max-width: 1000px ">{{aggregation_groups}}</p>
                 </td>
@@ -106,7 +127,8 @@
                     <div>
                         <select ng-if="state.mode=='edit'" style="width:80px;"
                                 chosen ng-model="rowkey_column.dictionary"
-                                ng-options="dt as dt for dt in dictionaries">
+                                ng-options="dt as dt for dt in cubeConfig.dictionaries">
+                            <option value=""></option>
                         </select>
                         <span ng-if="state.mode=='view'">{{rowkey_column.dictionary}}</span>
                     </div>
@@ -135,4 +157,4 @@
                 ng-click="addNewRowkeyColumn()" ng-show="state.mode=='edit'">New Rowkey Column<i class="fa fa-plus"></i></button>
     </div>
 </div>
-
+</div>

@@ -1,26 +1,32 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
+
 'use strict';
 
 KylinApp
-    .controller('JobCtrl', function ($scope, $q, $routeParams, $interval, $modal, ProjectService, MessageService, JobService,SweetAlert,loadingRequest,UserService) {
+    .controller('JobCtrl', function ($scope, $q, $routeParams, $interval, $modal, ProjectService, MessageService, JobService,SweetAlert,loadingRequest,UserService,jobConfig,JobList) {
+
+        $scope.jobList = JobList;
+        $scope.jobConfig = jobConfig;
         $scope.cubeName = null;
-        $scope.jobs = {};
         $scope.projects = [];
         $scope.action = {};
-        $scope.allStatus = [
-            {name: 'NEW', value: 0},
-            {name: 'PENDING', value: 1},
-            {name: 'RUNNING', value: 2},
-            {name: 'FINISHED', value: 4},
-            {name: 'ERROR', value: 8},
-            {name: 'DISCARDED', value: 16}
-        ];
-        $scope.theaditems = [
-            {attr: 'name', name: 'Job Name'},
-            {attr: 'related_cube', name: 'Cube'},
-            {attr: 'progress', name: 'Progress'},
-            {attr: 'last_modified', name: 'Last Modified Time'},
-            {attr: 'duration', name: 'Duration'}
-        ];
+
         $scope.status = [];
         $scope.toggleSelection = function toggleSelection(current) {
             var idx = $scope.status.indexOf(current);
@@ -34,7 +40,7 @@ KylinApp
 
 
         // projectName from page ctrl
-        $scope.state = {loading: false, refreshing: false, filterAttr: 'last_modified', filterReverse: true, reverseColumn: 'last_modified', projectName:$scope.project.selectedProject};
+        $scope.state = {loading: false, refreshing: false, filterAttr: 'last_modified', filterReverse: true, reverseColumn: 'last_modified', projectName:$scope.projectModel.selectedProject};
 
         ProjectService.list({}, function (projects) {
             angular.forEach(projects, function(project, index){
@@ -43,7 +49,7 @@ KylinApp
         });
 
         $scope.list = function (offset, limit) {
-            if(!$scope.project.projects.length){
+            if(!$scope.projectModel.projects.length){
                 return [];
             }
             offset = (!!offset) ? offset : 0;
@@ -66,27 +72,13 @@ KylinApp
                 limit: limit
             };
             $scope.state.loading = true;
-            JobService.list(jobRequest, function (jobs) {
-                angular.forEach(jobs, function (job) {
-                    var id = job.uuid;
-                    if (angular.isDefined($scope.jobs[id])) {
-                        if (job.last_modified != $scope.jobs[id].last_modified) {
-                            $scope.jobs[id] = job;
-                        } else {
-                        }
-                    } else {
-                        $scope.jobs[id] = job;
-                    }
-                });
 
+            var defer = $q.defer();
+            return JobList.list(jobRequest).then(function(resp){
                 $scope.state.loading = false;
-                if (angular.isDefined($scope.state.selectedJob)) {
-                    $scope.state.selectedJob = $scope.jobs[selectedJob.uuid];
-                }
-                defer.resolve(jobs.length);
+                defer.resolve(resp);
+                defer.promise;
             });
-
-            return defer.promise;
         }
 
         $scope.reload = function () {
@@ -95,9 +87,9 @@ KylinApp
         };
 
 
-        $scope.$watch('project.selectedProject', function (newValue, oldValue) {
+        $scope.$watch('projectModel.selectedProject', function (newValue, oldValue) {
             if(newValue!=oldValue||newValue==null){
-                $scope.jobs={};
+                JobList.removeAll();
                 $scope.state.projectName = newValue;
                 $scope.reload();
             }
@@ -116,9 +108,9 @@ KylinApp
                 loadingRequest.show();
                 JobService.resume({jobId: job.uuid}, {}, function (job) {
                     loadingRequest.hide();
-                    $scope.jobs[job.uuid] = job;
+                    JobList.jobs[job.uuid] = job;
                     if (angular.isDefined($scope.state.selectedJob)) {
-                        $scope.state.selectedJob = $scope.jobs[ $scope.state.selectedJob.uuid];
+                        $scope.state.selectedJob = JobList.jobs[ $scope.state.selectedJob.uuid];
                     }
                     SweetAlert.swal('Success!', 'Job has been resumed successfully!', 'success');
                 },function(e){
@@ -149,9 +141,9 @@ KylinApp
                 JobService.cancel({jobId: job.uuid}, {}, function (job) {
                     loadingRequest.hide();
                     $scope.safeApply(function() {
-                        $scope.jobs[job.uuid] = job;
+                        JobList.jobs[job.uuid] = job;
                         if (angular.isDefined($scope.state.selectedJob)) {
-                            $scope.state.selectedJob = $scope.jobs[ $scope.state.selectedJob.uuid];
+                            $scope.state.selectedJob = JobList.jobs[ $scope.state.selectedJob.uuid];
                         }
 
                     });
@@ -174,11 +166,12 @@ KylinApp
                 if ($scope.state.stepAttrToShow == "output") {
                     $scope.state.selectedStep.loadingOp = true;
                     internalOpenModal();
-                    JobService.stepOutput({jobId: $scope.state.selectedJob.uuid, propValue: $scope.state.selectedStep.sequence_id}, function (result) {
-                        if (angular.isDefined($scope.jobs[result['jobId']])) {
-                            var tjob = $scope.jobs[result['jobId']];
-                            tjob.steps[parseInt(result['stepId'])].cmd_output = result['cmd_output'];
-                            tjob.steps[parseInt(result['stepId'])].loadingOp = false;
+                    var stepId = $scope.state.selectedStep.sequence_id;
+                    JobService.stepOutput({jobId: $scope.state.selectedJob.uuid, propValue: $scope.state.selectedStep.id}, function (result) {
+                        if (angular.isDefined(JobList.jobs[result['jobId']])) {
+                            var tjob = JobList.jobs[result['jobId']];
+                            tjob.steps[stepId].cmd_output = result['cmd_output'];
+                            tjob.steps[stepId].loadingOp = false;
                         }
                     });
                 } else {
