@@ -188,7 +188,7 @@ a:hover, a:focus {
 	animation-delay: 1s;
 	text-shadow: none;
 	text-transform: uppercase;
- transparent!important
+	transparent!important
 }
 #download a {
 	color: #333;

@@ -36,7 +36,7 @@ import org.apache.kylin.metadata.MetadataManager;
 
 /**
  * @author George Song (ysong1)
- * 
+ *
  */
 public class CuboidSchedulerTest extends LocalFileMetadataTestCase {
     @Before

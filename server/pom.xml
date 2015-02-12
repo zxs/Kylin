@@ -41,13 +41,11 @@
             <artifactId>kylin-common</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
-            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.kylin</groupId>
             <artifactId>kylin-query</artifactId>
-            <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.servlet</groupId>
@@ -62,7 +60,6 @@
         <dependency>
             <groupId>org.apache.kylin</groupId>
             <artifactId>kylin-job</artifactId>
-            <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.hbase</groupId>
@@ -74,9 +71,9 @@
         <dependency>
             <groupId>org.apache.kylin</groupId>
             <artifactId>kylin-jdbc</artifactId>
-            <version>${project.parent.version}</version>
             <scope>test</scope>
         </dependency>
+        
         <dependency>
             <groupId>xerces</groupId>
             <artifactId>xercesImpl</artifactId>
@@ -403,16 +400,6 @@
             <artifactId>hbase-testing-util</artifactId>
             <version>${hbase-hadoop2.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.servlet</groupId>
-                    <artifactId>servlet-api</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>javax.servlet.jsp</groupId>
-                    <artifactId>jsp-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.thetransactioncompany</groupId>

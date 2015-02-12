@@ -40,20 +40,17 @@
             <artifactId>kylin-common</artifactId>
             <type>test-jar</type>
             <scope>test</scope>
-            <version>${project.parent.version}</version>
         </dependency>
 
         <!--Kylin Jar -->
         <dependency>
             <groupId>org.apache.kylin</groupId>
             <artifactId>kylin-cube</artifactId>
-            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.kylin</groupId>
             <artifactId>kylin-invertedindex</artifactId>
-            <version>${project.parent.version}</version>
         </dependency>
 
         <dependency>
