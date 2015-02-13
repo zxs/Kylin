@@ -106,7 +106,7 @@ public class IIManager implements IRealizationProvider {
     }
 
     public IIInstance getII(String iiName) {
-        iiName = iiName.toUpperCase();
+        iiName = iiName.toLowerCase();
         return iiMap.get(iiName);
     }
 

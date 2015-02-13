@@ -64,10 +64,10 @@ public class DimensionDesc {
 
     public void init(CubeDesc cubeDesc, Map<String, TableDesc> tables) {
         if (name != null)
-            name = name.toUpperCase();
+            name = name.toLowerCase();
 
         if (table != null)
-            table = table.toUpperCase();
+            table = table.toLowerCase();
 
         tableDesc = tables.get(this.getTable());
         if (tableDesc == null)
@@ -101,11 +101,11 @@ public class DimensionDesc {
 
         if (hierarchy != null) {
             for (HierarchyDesc h : hierarchy)
-                h.setColumn(h.getColumn().toUpperCase());
+                h.setColumn(h.getColumn().toLowerCase());
         }
 
         if (derived != null) {
-            StringUtil.toUpperCaseArray(derived, derived);
+            StringUtil.toLowerCaseArray(derived, derived);
         }
         
         if (derived != null && join == null) {

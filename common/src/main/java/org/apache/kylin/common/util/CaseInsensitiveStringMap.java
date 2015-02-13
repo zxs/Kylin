@@ -50,7 +50,7 @@ public class CaseInsensitiveStringMap<T> implements Map<String, T> {
 
     @Override
     public boolean containsKey(Object key) {
-        return key != null ? innerMap.containsKey(key.toString().toUpperCase()) : false;
+        return key != null ? innerMap.containsKey(key.toString().toLowerCase()) : false;
     }
 
     @Override
@@ -60,17 +60,17 @@ public class CaseInsensitiveStringMap<T> implements Map<String, T> {
 
     @Override
     public T get(Object key) {
-        return key != null ? innerMap.get(key.toString().toUpperCase()) : null;
+        return key != null ? innerMap.get(key.toString().toLowerCase()) : null;
     }
 
     @Override
     public T put(String key, T value) {
-        return key != null ? innerMap.put(key.toString().toUpperCase(), value) : null;
+        return key != null ? innerMap.put(key.toString().toLowerCase(), value) : null;
     }
 
     @Override
     public T remove(Object key) {
-        return key != null ? innerMap.remove(key.toString().toUpperCase()) : null;
+        return key != null ? innerMap.remove(key.toString().toLowerCase()) : null;
     }
 
     @Override

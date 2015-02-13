@@ -71,14 +71,14 @@ public class HiveColumnCardinalityUpdateJob extends AbstractHadoopJob {
 
             parseOptions(options, args);
 
-            this.table = getOptionValue(OPTION_TABLE).toUpperCase();
+            this.table = getOptionValue(OPTION_TABLE).toLowerCase();
             // start job
             String jobName = JOB_TITLE + getOptionsAsString();
             System.out.println("Starting: " + jobName);
             Configuration conf = getConf();
             Path output = new Path(getOptionValue(OPTION_OUTPUT_PATH));
 
-            updateKylinTableExd(table.toUpperCase(), output.toString(), conf);
+            updateKylinTableExd(table.toLowerCase(), output.toString(), conf);
             return 0;
         } catch (Exception e) {
             printUsage(options);
@@ -115,7 +115,7 @@ public class HiveColumnCardinalityUpdateJob extends AbstractHadoopJob {
         MetadataManager metaMgr = MetadataManager.getInstance(KylinConfig.getInstanceFromEnv());
         Map<String, String> tableExd = metaMgr.getTableDescExd(tableName);
         tableExd.put(MetadataConstants.TABLE_EXD_CARDINALITY, scardi);
-        metaMgr.saveTableExd(tableName.toUpperCase(), tableExd);
+        metaMgr.saveTableExd(tableName.toLowerCase(), tableExd);
     }
 
     private static List<String> readLines(Path location, Configuration conf) throws Exception {

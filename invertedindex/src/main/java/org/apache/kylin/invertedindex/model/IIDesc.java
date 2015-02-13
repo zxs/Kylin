@@ -102,12 +102,12 @@ public class IIDesc extends RootPersistentEntity {
             throw new RuntimeException("No data model found with name '" + modelName + "'.");
         }
 
-        timestampDimension = timestampDimension.toUpperCase();
+        timestampDimension = timestampDimension.toLowerCase();
 
         // capitalize
         IIDimension.capicalizeStrings(bitmapDimensions);
         IIDimension.capicalizeStrings(valueDimensions);
-        StringUtil.toUpperCaseArray(metricNames, metricNames);
+        StringUtil.toLowerCaseArray(metricNames, metricNames);
 
         // retrieve all columns and all tables
         HashSet<String> allTableNames = Sets.newHashSet();
@@ -320,7 +320,7 @@ public class IIDesc extends RootPersistentEntity {
      * @return
      */
     public String getFactTableName() {
-        return this.model.getFactTable().toUpperCase();
+        return this.model.getFactTable().toLowerCase();
     }
 
     public String getTimestampDimension() {

@@ -75,7 +75,7 @@ public class ProjectInstance extends RootPersistentEntity {
         if (project == null)
             throw new IllegalStateException("Trying to normalized a project name which is null");
 
-        return project.toUpperCase();
+        return project.toLowerCase();
     }
 
     // ============================================================================
@@ -140,12 +140,12 @@ public class ProjectInstance extends RootPersistentEntity {
     }
 
     public boolean containsCube(String cubeName) {
-        cubeName = cubeName.toUpperCase();
+        cubeName = cubeName.toLowerCase();
         return cubes.contains(cubeName);
     }
 
     public void removeCube(String cubeName) {
-        cubeName = cubeName.toUpperCase();
+        cubeName = cubeName.toLowerCase();
         cubes.remove(cubeName);
     }
 
@@ -154,7 +154,7 @@ public class ProjectInstance extends RootPersistentEntity {
     }
 
     public void addCube(String cubeName) {
-        cubeName = cubeName.toUpperCase();
+        cubeName = cubeName.toLowerCase();
         this.cubes.add(cubeName);
     }
 
@@ -172,12 +172,12 @@ public class ProjectInstance extends RootPersistentEntity {
     }
 
     public boolean containsTable(String tableName) {
-        tableName = tableName.toUpperCase();
+        tableName = tableName.toLowerCase();
         return tables.contains(tableName);
     }
 
     public void removeTable(String tableName) {
-        tableName = tableName.toUpperCase();
+        tableName = tableName.toLowerCase();
         tables.remove(tableName);
     }
 
@@ -186,7 +186,7 @@ public class ProjectInstance extends RootPersistentEntity {
     }
 
     public void addTable(String tableName) {
-        tableName = tableName.toUpperCase();
+        tableName = tableName.toLowerCase();
         this.getTables().add(tableName);
     }
 
@@ -227,7 +227,7 @@ public class ProjectInstance extends RootPersistentEntity {
 
         for (int i = 0; i < cubes.size(); ++i) {
             if (cubes.get(i) != null)
-                cubes.set(i, cubes.get(i).toUpperCase());
+                cubes.set(i, cubes.get(i).toLowerCase());
         }
     }
 

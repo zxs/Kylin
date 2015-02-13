@@ -183,7 +183,7 @@ public class CubeDesc extends RootPersistentEntity {
     }
 
     public DimensionDesc findDimensionByTable(String lookupTableName) {
-        lookupTableName = lookupTableName.toUpperCase();
+        lookupTableName = lookupTableName.toLowerCase();
         for (DimensionDesc dim : dimensions)
             if (dim.getTable() != null && dim.getTable().equals(lookupTableName))
                 return dim;
@@ -191,7 +191,7 @@ public class CubeDesc extends RootPersistentEntity {
     }
 
     public DimensionDesc findDimensionByName(String dimName) {
-        dimName = dimName.toUpperCase();
+        dimName = dimName.toLowerCase();
         for (DimensionDesc dim : dimensions) {
             if (dimName.equals(dim.getName()))
                 return dim;
@@ -217,11 +217,11 @@ public class CubeDesc extends RootPersistentEntity {
         HashSet<String> tableNames = new HashSet<String>();
         List<TableDesc> result = new ArrayList<TableDesc>();
 
-        tableNames.add(this.getFactTable().toUpperCase());
+        tableNames.add(this.getFactTable().toLowerCase());
         for (DimensionDesc dim : dimensions) {
             String table = dim.getTable();
             if (table != null)
-                tableNames.add(table.toUpperCase());
+                tableNames.add(table.toLowerCase());
         }
 
         for (String tableName : tableNames) {
@@ -321,7 +321,7 @@ public class CubeDesc extends RootPersistentEntity {
     }
 
     public String getFactTable() {
-        return model.getFactTable().toUpperCase();
+        return model.getFactTable().toLowerCase();
     }
 
     public String[] getNullStrings() {
@@ -612,14 +612,14 @@ public class CubeDesc extends RootPersistentEntity {
 
         TableDesc factTable = tables.get(getFactTable());
         for (MeasureDesc m : measures) {
-            m.setName(m.getName().toUpperCase());
+            m.setName(m.getName().toLowerCase());
 
             if (m.getDependentMeasureRef() != null) {
-                m.setDependentMeasureRef(m.getDependentMeasureRef().toUpperCase());
+                m.setDependentMeasureRef(m.getDependentMeasureRef().toLowerCase());
             }
             
             FunctionDesc f = m.getFunction();
-            f.setExpression(f.getExpression().toUpperCase());
+            f.setExpression(f.getExpression().toLowerCase());
             f.setReturnDataType(DataType.getInstance(f.getReturnType()));
 
             ParameterDesc p = f.getParameter();

@@ -53,8 +53,8 @@ public class IIDimension {
 
     public static void capicalizeStrings(List<IIDimension> dimensions) {
         for (IIDimension iiDimension : dimensions) {
-            iiDimension.setTable(iiDimension.getTable().toUpperCase());
-            StringUtil.toUpperCaseArray(iiDimension.getColumns(), iiDimension.getColumns());
+            iiDimension.setTable(iiDimension.getTable().toLowerCase());
+            StringUtil.toLowerCaseArray(iiDimension.getColumns(), iiDimension.getColumns());
         }
     }
 

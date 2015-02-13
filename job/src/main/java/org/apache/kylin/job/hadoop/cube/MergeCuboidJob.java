@@ -50,8 +50,8 @@ public class MergeCuboidJob extends CuboidJob {
             options.addOption(OPTION_OUTPUT_PATH);
             parseOptions(options, args);
 
-            String cubeName = getOptionValue(OPTION_CUBE_NAME).toUpperCase();
-            String segmentName = getOptionValue(OPTION_SEGMENT_NAME).toUpperCase();
+            String cubeName = getOptionValue(OPTION_CUBE_NAME).toLowerCase();
+            String segmentName = getOptionValue(OPTION_SEGMENT_NAME).toLowerCase();
             KylinConfig config = KylinConfig.getInstanceFromEnv();
             CubeManager cubeMgr = CubeManager.getInstance(config);
             CubeInstance cube = cubeMgr.getCube(cubeName);

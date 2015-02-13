@@ -80,11 +80,11 @@ public class HBaseMappingDesc {
         cubeRef = cubeDesc;
 
         for (HBaseColumnFamilyDesc cf : columnFamily) {
-            cf.setName(cf.getName().toUpperCase());
+            cf.setName(cf.getName().toLowerCase());
 
             for (HBaseColumnDesc c : cf.getColumns()) {
-                c.setQualifier(c.getQualifier().toUpperCase());
-                StringUtil.toUpperCaseArray(c.getMeasureRefs(), c.getMeasureRefs());
+                c.setQualifier(c.getQualifier().toLowerCase());
+                StringUtil.toLowerCaseArray(c.getMeasureRefs(), c.getMeasureRefs());
             }
         }
     }

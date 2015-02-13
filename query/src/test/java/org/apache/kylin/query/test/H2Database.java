@@ -66,7 +66,7 @@ public class H2Database {
 
     private void loadH2Table(String tableName, String joinType) throws SQLException {
         MetadataManager metaMgr = MetadataManager.getInstance(config);
-        TableDesc tableDesc = metaMgr.getTableDesc(tableName.toUpperCase());
+        TableDesc tableDesc = metaMgr.getTableDesc(tableName.toLowerCase());
         File tempFile = null;
 
         String fileNameSuffix = joinType.equalsIgnoreCase("default") ? "" : "." + joinType;

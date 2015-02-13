@@ -240,7 +240,7 @@ public class CubeMetadataUpgrade {
             if (file.indexOf("/") > -1) {
                 file = file.substring(file.lastIndexOf("/") + 1);
             }
-            String tableIdentity = file.substring(0, file.length() - MetadataConstants.FILE_SURFIX.length()).toUpperCase();
+            String tableIdentity = file.substring(0, file.length() - MetadataConstants.FILE_SURFIX.length()).toLowerCase();
 
             // for metadata upgrade, convert resource path to new pattern (<DB>.<TABLE>.json)
             if (tableIdentity.indexOf(".") < 0) {

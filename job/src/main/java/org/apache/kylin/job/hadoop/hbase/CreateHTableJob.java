@@ -72,13 +72,13 @@ public class CreateHTableJob extends AbstractHadoopJob {
 
         Path partitionFilePath = new Path(getOptionValue(OPTION_PARTITION_FILE_PATH));
 
-        String cubeName = getOptionValue(OPTION_CUBE_NAME).toUpperCase();
+        String cubeName = getOptionValue(OPTION_CUBE_NAME).toLowerCase();
         KylinConfig config = KylinConfig.getInstanceFromEnv();
         CubeManager cubeMgr = CubeManager.getInstance(config);
         CubeInstance cube = cubeMgr.getCube(cubeName);
         CubeDesc cubeDesc = cube.getDescriptor();
 
-        String tableName = getOptionValue(OPTION_HTABLE_NAME).toUpperCase();
+        String tableName = getOptionValue(OPTION_HTABLE_NAME).toLowerCase();
         HTableDescriptor tableDesc = new HTableDescriptor(TableName.valueOf(tableName));
         // https://hbase.apache.org/apidocs/org/apache/hadoop/hbase/regionserver/ConstantSizeRegionSplitPolicy.html
         tableDesc.setValue(HTableDescriptor.SPLIT_POLICY, ConstantSizeRegionSplitPolicy.class.getName());

@@ -374,7 +374,7 @@ public class KylinConfig {
     }
 
     public String getOverrideHiveTableLocation(String table) {
-        return getOptional(HIVE_TABLE_LOCATION_PREFIX + table.toUpperCase());
+        return getOptional(HIVE_TABLE_LOCATION_PREFIX + table.toLowerCase());
     }
 
     public String getTempHDFSDir() {

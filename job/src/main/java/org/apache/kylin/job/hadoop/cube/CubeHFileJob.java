@@ -60,7 +60,7 @@ public class CubeHFileJob extends AbstractHadoopJob {
             parseOptions(options, args);
 
             Path output = new Path(getOptionValue(OPTION_OUTPUT_PATH));
-            String cubeName = getOptionValue(OPTION_CUBE_NAME).toUpperCase();
+            String cubeName = getOptionValue(OPTION_CUBE_NAME).toLowerCase();
 
             CubeManager cubeMgr = CubeManager.getInstance(KylinConfig.getInstanceFromEnv());
 
@@ -87,7 +87,7 @@ public class CubeHFileJob extends AbstractHadoopJob {
             // add metadata to distributed cache
             attachKylinPropsAndMetadata(cube, job.getConfiguration());
 
-            String tableName = getOptionValue(OPTION_HTABLE_NAME).toUpperCase();
+            String tableName = getOptionValue(OPTION_HTABLE_NAME).toLowerCase();
             HTable htable = new HTable(conf, tableName);
 
             //Automatic config !

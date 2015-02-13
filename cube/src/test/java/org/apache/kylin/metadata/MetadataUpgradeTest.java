@@ -81,8 +81,8 @@ public class MetadataUpgradeTest extends LocalFileMetadataTestCase {
         Assert.assertTrue(!store.exists(oldResLocation));
         
         
-        String oldExdResLocation = TableDesc.concatExdResourcePath("test_kylin_fact".toUpperCase());
-        String newExdResLocation = TableDesc.concatExdResourcePath("default.test_kylin_fact".toUpperCase());
+        String oldExdResLocation = TableDesc.concatExdResourcePath("test_kylin_fact".toLowerCase());
+        String newExdResLocation = TableDesc.concatExdResourcePath("default.test_kylin_fact".toLowerCase());
         
         Assert.assertTrue(store.exists(newExdResLocation));
         Assert.assertTrue(!store.exists(oldExdResLocation));

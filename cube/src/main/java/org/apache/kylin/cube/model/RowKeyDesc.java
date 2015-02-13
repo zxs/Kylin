@@ -185,7 +185,7 @@ public class RowKeyDesc {
         for (int i = 0; i < rowkeyColumns.length; i++) {
             RowKeyColDesc rowKeyColDesc = rowkeyColumns[i];
             String column = rowKeyColDesc.getColumn();
-            rowKeyColDesc.setColumn(column.toUpperCase());
+            rowKeyColDesc.setColumn(column.toLowerCase());
             rowKeyColDesc.setBitIndex(rowkeyColumns.length - i - 1);
             rowKeyColDesc.setColRef(colNameAbbr.get(column));
             if (rowKeyColDesc.getColRef() == null) {
@@ -206,7 +206,7 @@ public class RowKeyDesc {
         }
 
         for (int i = 0; i < aggregationGroups.length; i++) {
-            StringUtil.toUpperCaseArray(aggregationGroups[i], this.aggregationGroups[i]);
+            StringUtil.toLowerCaseArray(aggregationGroups[i], this.aggregationGroups[i]);
         }
 
         for (int i = 0; i < this.rowkeyColumns.length; i++) {
@@ -220,7 +220,7 @@ public class RowKeyDesc {
             AggrGroupMask mask = new AggrGroupMask(aggGrp.length);
 
             for (int j = 0; j < aggGrp.length; j++) {
-                TblColRef aggCol = colNameAbbr.get(aggGrp[j].toUpperCase());
+                TblColRef aggCol = colNameAbbr.get(aggGrp[j].toLowerCase());
                 if (aggCol == null) {
                     throw new IllegalArgumentException("Can't find aggregation column " + aggGrp[j] + " in  cube " + this.cubeDesc.getName());
                 }

@@ -149,7 +149,7 @@ public class MetadataManager {
         if (tableName != null && tableName.indexOf(".") < 0)
             tableName = "DEFAULT." + tableName;
         
-        TableDesc result = srcTableMap.get(tableName.toUpperCase());
+        TableDesc result = srcTableMap.get(tableName.toLowerCase());
         return result;
     }
 
@@ -233,7 +233,7 @@ public class MetadataManager {
         if (file.indexOf("/") > -1) {
             file = file.substring(file.lastIndexOf("/") + 1);
         }
-        String tableIdentity = file.substring(0, file.length() - MetadataConstants.FILE_SURFIX.length()).toUpperCase();
+        String tableIdentity = file.substring(0, file.length() - MetadataConstants.FILE_SURFIX.length()).toLowerCase();
 
         srcTableExdMap.putLocal(tableIdentity, attrs);
         return attrs;

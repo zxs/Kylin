@@ -71,7 +71,7 @@ public class CuboidJob extends AbstractHadoopJob {
 
             Path input = new Path(getOptionValue(OPTION_INPUT_PATH));
             Path output = new Path(getOptionValue(OPTION_OUTPUT_PATH));
-            String cubeName = getOptionValue(OPTION_CUBE_NAME).toUpperCase();
+            String cubeName = getOptionValue(OPTION_CUBE_NAME).toLowerCase();
             int nCuboidLevel = Integer.parseInt(getOptionValue(OPTION_NCUBOID_LEVEL));
             String segmentName = getOptionValue(OPTION_SEGMENT_NAME);
 

@@ -133,7 +133,7 @@ public class TableController extends BasicController {
         String submitter = SecurityContextHolder.getContext().getAuthentication().getName();
         String[] tables = tableNames.split(",");
         for (String table : tables) {
-            cubeMgmtService.calculateCardinality(table.trim().toUpperCase(), submitter);
+            cubeMgmtService.calculateCardinality(table.trim().toLowerCase(), submitter);
         }
         return request;
     }

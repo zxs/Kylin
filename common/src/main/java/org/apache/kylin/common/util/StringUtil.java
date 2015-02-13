@@ -49,10 +49,10 @@ public class StringUtil {
         return (String[]) whatsLeft.toArray(new String[whatsLeft.size()]);
     }
 
-    public static void toUpperCaseArray(String[] source, String[] target) {
+    public static void toLowerCaseArray(String[] source, String[] target) {
         for (int i = 0; i < source.length; i++) {
             if (source[i] != null) {
-                target[i] = source[i].toUpperCase();
+                target[i] = source[i].toLowerCase();
             }
         }
     }

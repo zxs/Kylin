@@ -78,7 +78,7 @@ public class DimensionDesc {
     }
 
     public String getTable() {
-        return table.toUpperCase();
+        return table.toLowerCase();
     }
 
     public void setTable(String table) {
@@ -124,7 +124,7 @@ public class DimensionDesc {
     public void setColumn(String column) {
         this.column = column;
         if (this.column != null)
-            this.column = this.column.toUpperCase();
+            this.column = this.column.toLowerCase();
     }
 
     public HierarchyDesc[] getHierarchy() {
@@ -182,11 +182,11 @@ public class DimensionDesc {
 
     public void init(Map<String, TableDesc> tables) {
         if (name != null)
-            name = name.toUpperCase();
+            name = name.toLowerCase();
         if (table != null)
-            table = table.toUpperCase();
+            table = table.toLowerCase();
         if (column != null)
-            column = column.toUpperCase();
+            column = column.toLowerCase();
 
         TableDesc tableDesc = tables.get(table);
         if (tableDesc == null)
@@ -198,17 +198,17 @@ public class DimensionDesc {
             derived = null;
 
         if (join != null) {
-            StringUtil.toUpperCaseArray(join.getForeignKey(), join.getForeignKey());
-            StringUtil.toUpperCaseArray(join.getPrimaryKey(), join.getPrimaryKey());
+            StringUtil.toLowerCaseArray(join.getForeignKey(), join.getForeignKey());
+            StringUtil.toLowerCaseArray(join.getPrimaryKey(), join.getPrimaryKey());
         }
 
         if (hierarchy != null) {
             for (HierarchyDesc h : hierarchy)
-                h.setColumn(h.getColumn().toUpperCase());
+                h.setColumn(h.getColumn().toLowerCase());
         }
 
         if (derived != null) {
-            StringUtil.toUpperCaseArray(derived, derived);
+            StringUtil.toLowerCaseArray(derived, derived);
         }
     }
 

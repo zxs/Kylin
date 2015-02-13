@@ -48,15 +48,15 @@ public class PartitionDesc {
 
     public void init(Map<String, Map<String, TblColRef>> columnMap) {
         if (null != partitionDateColumn) {
-            partitionDateColumn = partitionDateColumn.toUpperCase();
+            partitionDateColumn = partitionDateColumn.toLowerCase();
 
             String[] columns = StringSplitter.split(partitionDateColumn, ".");
 
             if (null != columns && columns.length == 3) {
-                String tableName = columns[0].toUpperCase() + "." + columns[1].toUpperCase();
+                String tableName = columns[0].toLowerCase() + "." + columns[1].toLowerCase();
                 Map<String, TblColRef> cols = columnMap.get(tableName);
                 if (cols != null) {
-                    partitionDateColumnRef = cols.get(columns[2].toUpperCase());
+                    partitionDateColumnRef = cols.get(columns[2].toLowerCase());
                 } else {
                     throw new IllegalStateException("The table '" + tableName + "' provided in 'partition_date_column' doesn't exist.");
                 }

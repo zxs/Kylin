@@ -55,7 +55,7 @@ public class BulkLoadJob extends AbstractHadoopJob {
             options.addOption(OPTION_CUBE_NAME);
             parseOptions(options, args);
 
-            String tableName = getOptionValue(OPTION_HTABLE_NAME).toUpperCase();
+            String tableName = getOptionValue(OPTION_HTABLE_NAME).toLowerCase();
             // e.g
             // /tmp/kylin-3f150b00-3332-41ca-9d3d-652f67f044d7/test_kylin_cube_with_slr_ready_2_segments/hfile/
             // end with "/"
@@ -64,7 +64,7 @@ public class BulkLoadJob extends AbstractHadoopJob {
             Configuration conf = HBaseConfiguration.create(getConf());
             FileSystem fs = FileSystem.get(conf);
 
-            String cubeName = getOptionValue(OPTION_CUBE_NAME).toUpperCase();
+            String cubeName = getOptionValue(OPTION_CUBE_NAME).toLowerCase();
             KylinConfig config = KylinConfig.getInstanceFromEnv();
             CubeManager cubeMgr = CubeManager.getInstance(config);
             CubeInstance cube = cubeMgr.getCube(cubeName);

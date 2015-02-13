@@ -73,7 +73,7 @@ public class TableDesc extends RootPersistentEntity {
     }
     
     public String getIdentity() {
-        return String.format("%s.%s", this.getDatabase().toUpperCase(), this.getName()).toUpperCase();
+        return String.format("%s.%s", this.getDatabase().toLowerCase(), this.getName()).toLowerCase();
     }
     
     public static String concatResourcePath(String tableIdentity) {
@@ -138,10 +138,10 @@ public class TableDesc extends RootPersistentEntity {
 
     public void init() {
         if (name != null)
-            name = name.toUpperCase();
+            name = name.toLowerCase();
 
         if (getDatabase() != null)
-            setDatabase(getDatabase().toUpperCase());
+            setDatabase(getDatabase().toLowerCase());
 
         if (columns != null) {
             Arrays.sort(columns, new Comparator<ColumnDesc>() {

@@ -79,7 +79,7 @@ public class DataModelDesc extends RootPersistentEntity {
     }
 
     public void setFactTable(String factTable) {
-        this.factTable = factTable.toUpperCase();
+        this.factTable = factTable.toLowerCase();
     }
 
     public LookupDesc[] getLookups() {
@@ -150,7 +150,7 @@ public class DataModelDesc extends RootPersistentEntity {
         // here we don't modify 'allColumns' and 'dimensionColumns';
         // initDimensionColumns() will do the update
         for (LookupDesc lookup : this.lookups) {
-            lookup.setTable(lookup.getTable().toUpperCase());
+            lookup.setTable(lookup.getTable().toLowerCase());
             TableDesc dimTable = tables.get(lookup.getTable());
             if (dimTable == null) {
                 throw new IllegalStateException("Table " + lookup.getTable() + " does not exist for " + this);
@@ -160,8 +160,8 @@ public class DataModelDesc extends RootPersistentEntity {
             if (join == null)
                 continue;
 
-            StringUtil.toUpperCaseArray(join.getForeignKey(), join.getForeignKey());
-            StringUtil.toUpperCaseArray(join.getPrimaryKey(), join.getPrimaryKey());
+            StringUtil.toLowerCaseArray(join.getForeignKey(), join.getForeignKey());
+            StringUtil.toLowerCaseArray(join.getPrimaryKey(), join.getPrimaryKey());
             // primary key
             String[] pks = join.getPrimaryKey();
             TblColRef[] pkCols = new TblColRef[pks.length];
@@ -176,7 +176,7 @@ public class DataModelDesc extends RootPersistentEntity {
             }
             join.setPrimaryKeyColumns(pkCols);
             // foreign key
-            TableDesc factTable = tables.get(this.factTable.toUpperCase());
+            TableDesc factTable = tables.get(this.factTable.toLowerCase());
             if (factTable == null) {
                 throw new IllegalStateException("Fact table does not exist:" + this.getFactTable());
             }

@@ -138,7 +138,7 @@ public class DeployUtil {
 
     public static void prepareTestData(String joinType, String cubeName) throws Exception {
 
-        String factTableName = TABLE_KYLIN_FACT.toUpperCase();
+        String factTableName = TABLE_KYLIN_FACT.toLowerCase();
         String content = null;
 
         boolean buildCubeUsingProvidedData = Boolean.parseBoolean(System.getProperty("buildCubeUsingProvidedData"));
@@ -193,7 +193,7 @@ public class DeployUtil {
         File temp = File.createTempFile("temp", ".csv");
         temp.createNewFile();
         for (String tablename : TABLE_NAMES) {
-            tablename = tablename.toUpperCase();
+            tablename = tablename.toLowerCase();
 
             File localBufferFile = new File(temp.getParent() + "/" + tablename + ".csv");
             localBufferFile.createNewFile();
@@ -214,11 +214,11 @@ public class DeployUtil {
         
         // create hive tables
         hiveClient.executeHQL("CREATE DATABASE IF NOT EXISTS EDW");
-        hiveClient.executeHQL(generateCreateTableHql(metaMgr.getTableDesc(TABLE_CAL_DT.toUpperCase())));
-        hiveClient.executeHQL(generateCreateTableHql(metaMgr.getTableDesc(TABLE_CATEGORY_GROUPINGS.toUpperCase())));
-        hiveClient.executeHQL(generateCreateTableHql(metaMgr.getTableDesc(TABLE_KYLIN_FACT.toUpperCase())));
-        hiveClient.executeHQL(generateCreateTableHql(metaMgr.getTableDesc(TABLE_SELLER_TYPE_DIM.toUpperCase())));
-        hiveClient.executeHQL(generateCreateTableHql(metaMgr.getTableDesc(TABLE_SITES.toUpperCase())));
+        hiveClient.executeHQL(generateCreateTableHql(metaMgr.getTableDesc(TABLE_CAL_DT.toLowerCase())));
+        hiveClient.executeHQL(generateCreateTableHql(metaMgr.getTableDesc(TABLE_CATEGORY_GROUPINGS.toLowerCase())));
+        hiveClient.executeHQL(generateCreateTableHql(metaMgr.getTableDesc(TABLE_KYLIN_FACT.toLowerCase())));
+        hiveClient.executeHQL(generateCreateTableHql(metaMgr.getTableDesc(TABLE_SELLER_TYPE_DIM.toLowerCase())));
+        hiveClient.executeHQL(generateCreateTableHql(metaMgr.getTableDesc(TABLE_SITES.toLowerCase())));
 
         // load data to hive tables
         // LOAD DATA LOCAL INPATH 'filepath' [OVERWRITE] INTO TABLE tablename
@@ -230,7 +230,7 @@ public class DeployUtil {
     }
 
     private static String generateLoadDataHql(String tableName, String tableFileDir) {
-        return "LOAD DATA LOCAL INPATH '" + tableFileDir + "/" + tableName.toUpperCase() + ".csv' OVERWRITE INTO TABLE " + tableName.toUpperCase();
+        return "LOAD DATA LOCAL INPATH '" + tableFileDir + "/" + tableName.toLowerCase() + ".csv' OVERWRITE INTO TABLE " + tableName.toLowerCase();
     }
 
     private static String[] generateCreateTableHql(TableDesc tableDesc) {

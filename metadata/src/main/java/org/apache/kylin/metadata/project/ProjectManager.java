@@ -313,15 +313,15 @@ public class ProjectManager {
     }
 
     public Set<IRealization> getRealizationsByTable(String project, String tableName) {
-        return l2Cache.getRealizationsByTable(norm(project), tableName.toUpperCase());
+        return l2Cache.getRealizationsByTable(norm(project), tableName.toLowerCase());
     }
 
     public List<IRealization> getOnlineRealizationByFactTable(String project, String factTable) {
-        return l2Cache.getOnlineRealizationByFactTable(norm(project), factTable.toUpperCase());
+        return l2Cache.getOnlineRealizationByFactTable(norm(project), factTable.toLowerCase());
     }
 
     public List<MeasureDesc> listEffectiveRewriteMeasures(String project, String factTable) {
-        return l2Cache.listEffectiveRewriteMeasures(norm(project), factTable.toUpperCase());
+        return l2Cache.listEffectiveRewriteMeasures(norm(project), factTable.toLowerCase());
     }
 
     KylinConfig getConfig() {

@@ -95,8 +95,8 @@ public class HiveSourceTableLoader {
             TableDesc tableDesc = metaMgr.getTableDesc(database + "." + tableName);
             if (tableDesc == null) {
                 tableDesc = new TableDesc();
-                tableDesc.setDatabase(database.toUpperCase());
-                tableDesc.setName(tableName.toUpperCase());
+                tableDesc.setDatabase(database.toLowerCase());
+                tableDesc.setName(tableName.toLowerCase());
                 tableDesc.setUuid(UUID.randomUUID().toString());
                 tableDesc.setLastModified(0);
             }
@@ -106,7 +106,7 @@ public class HiveSourceTableLoader {
             for (int i = 0; i < columnNumber; i++) {
                 FieldSchema field = fields.get(i);
                 ColumnDesc cdesc = new ColumnDesc();
-                cdesc.setName(field.getName().toUpperCase());
+                cdesc.setName(field.getName().toLowerCase());
                 cdesc.setDatatype(field.getType());
                 cdesc.setId(String.valueOf(i + 1));
                 columns.add(cdesc);
@@ -118,7 +118,7 @@ public class HiveSourceTableLoader {
             for (int i = 0, n = partitionCols.size(); i < n; i++) {
                 if (i > 0)
                     partitionColumnString.append(", ");
-                partitionColumnString.append(partitionCols.get(i).getName().toUpperCase());
+                partitionColumnString.append(partitionCols.get(i).getName().toLowerCase());
             }
 
             Map<String, String> map = metaMgr.getTableDescExd(tableDesc.getIdentity());

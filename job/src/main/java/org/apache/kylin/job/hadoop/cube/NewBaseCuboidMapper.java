@@ -122,7 +122,7 @@ public class NewBaseCuboidMapper<KEYIN> extends KylinMapper<KEYIN, Text, Text, T
     protected void setup(Context context) throws IOException {
         super.publishConfiguration(context.getConfiguration());
 
-        cubeName = context.getConfiguration().get(BatchConstants.CFG_CUBE_NAME).toUpperCase();
+        cubeName = context.getConfiguration().get(BatchConstants.CFG_CUBE_NAME).toLowerCase();
         segmentName = context.getConfiguration().get(BatchConstants.CFG_CUBE_SEGMENT_NAME);
 
         KylinConfig config = AbstractHadoopJob.loadKylinPropsAndMetadata(context.getConfiguration());

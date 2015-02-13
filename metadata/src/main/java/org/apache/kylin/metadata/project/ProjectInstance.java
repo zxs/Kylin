@@ -80,7 +80,7 @@ public class ProjectInstance extends RootPersistentEntity {
         if (project == null)
             throw new IllegalStateException("Trying to normalized a project name which is null");
 
-        return project.toUpperCase();
+        return project.toLowerCase();
     }
 
     public static ProjectInstance create(String name, String owner, String description, List<RealizationEntry> realizationEntries) {
@@ -192,11 +192,11 @@ public class ProjectInstance extends RootPersistentEntity {
     }
 
     public boolean containsTable(String tableName) {
-        return tables.contains(tableName.toUpperCase());
+        return tables.contains(tableName.toLowerCase());
     }
 
     public void removeTable(String tableName) {
-        tables.remove(tableName.toUpperCase());
+        tables.remove(tableName.toLowerCase());
     }
 
     public int getTablesCount() {
@@ -204,7 +204,7 @@ public class ProjectInstance extends RootPersistentEntity {
     }
 
     public void addTable(String tableName) {
-        this.getTables().add(tableName.toUpperCase());
+        this.getTables().add(tableName.toLowerCase());
     }
 
     public Set<String> getTables() {

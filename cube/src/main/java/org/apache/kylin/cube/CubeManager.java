@@ -129,7 +129,7 @@ public class CubeManager implements IRealizationProvider {
     }
 
     public CubeInstance getCube(String cubeName) {
-        cubeName = cubeName.toUpperCase();
+        cubeName = cubeName.toLowerCase();
         return cubeMap.get(cubeName);
     }
 
@@ -142,7 +142,7 @@ public class CubeManager implements IRealizationProvider {
      */
     public List<CubeInstance> getCubesByDesc(String descName) {
 
-        descName = descName.toUpperCase();
+        descName = descName.toLowerCase();
         List<CubeInstance> list = listAllCubes();
         List<CubeInstance> result = new ArrayList<CubeInstance>();
         Iterator<CubeInstance> it = list.iterator();
@@ -393,7 +393,7 @@ public class CubeManager implements IRealizationProvider {
      * @param cube
      */
     public void removeCubeCache(CubeInstance cube) {
-        final String cubeName = cube.getName().toUpperCase();
+        final String cubeName = cube.getName().toLowerCase();
         cubeMap.remove(cubeName);
         usedStorageLocation.removeAll(cubeName);
     }

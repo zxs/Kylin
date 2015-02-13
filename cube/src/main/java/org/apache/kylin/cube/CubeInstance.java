@@ -215,7 +215,7 @@ public class CubeInstance extends RootPersistentEntity implements IRealization {
     }
 
     public String getDescName() {
-        return descName.toUpperCase();
+        return descName.toLowerCase();
     }
 
     public String getOriginDescName() {
