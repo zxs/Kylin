@@ -48,8 +48,8 @@ hbase -Djava.util.logging.config.file=${tomcat_root}/conf/logging.properties \
 org.apache.hadoop.util.RunJar ${tomcat_root}/bin/bootstrap.jar  org.apache.catalina.startup.Bootstrap start > ${tomcat_root}/logs/kylin.log 2>&1 & echo $! > ${KYLIN_HOME}/pid &
 echo "A new Kylin instance is started by $USER, stop it using \"stop-kylin.sh\""
 if [ "$useSandbox" = "true" ]
-    then echo "Please visit http://<your_sandbox_ip>:7070/kylin to play with the cubes! (Useranme: ADMIN, Password: KYLIN)"
+    then echo "Please visit http://<your_sandbox_ip>:52100/kylin to play with the cubes! (Useranme: ADMIN, Password: KYLIN)"
 else
-    echo "Please visit http://<ip>:7070/kylin"
+    echo "Please visit http://<ip>:52100/kylin"
 fi
 echo "You can check the log at ${tomcat_root}/logs/kylin.log"
