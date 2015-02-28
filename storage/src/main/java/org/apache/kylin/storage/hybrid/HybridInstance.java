@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.kylin.common.KylinConfig;
 import org.apache.kylin.common.persistence.RootPersistentEntity;
+import org.apache.kylin.cube.CubeInstance;
+import org.apache.kylin.invertedindex.IIInstance;
 import org.apache.kylin.metadata.model.MeasureDesc;
 import org.apache.kylin.metadata.model.TblColRef;
 import org.apache.kylin.metadata.project.RealizationEntry;
@@ -43,11 +45,19 @@ public class HybridInstance extends RootPersistentEntity implements IRealization
         historyRealizationInstance = registry.getRealization(historyRealization.getType(), historyRealization.getRealization());
         realTimeRealizationInstance = registry.getRealization(realTimeRealization.getType(), realTimeRealization.getRealization());
 
+        if (historyRealizationInstance == null) {
+            throw new IllegalArgumentException("Didn't find realization '" + historyRealization.getType() + "'" + " with name '" + historyRealization.getRealization() + "' in '" + name + "'");
+        }
+
+        if (realTimeRealizationInstance == null) {
+            throw new IllegalArgumentException("Didn't find realization '" + realTimeRealization.getType() + "'" + " with name '" + realTimeRealization.getRealization() + "' in '" + name + "'");
+        }
+
     }
 
     @Override
     public boolean isCapable(SQLDigest digest) {
-        return historyRealizationInstance.isCapable(digest) || realTimeRealizationInstance.isCapable(digest);
+        return getHistoryRealizationInstance().isCapable(digest) || getRealTimeRealizationInstance().isCapable(digest);
     }
 
     @Override
@@ -64,17 +74,17 @@ public class HybridInstance extends RootPersistentEntity implements IRealization
 
     @Override
     public String getFactTable() {
-        return null;
+        return getHistoryRealizationInstance().getFactTable();
     }
 
     @Override
     public List<TblColRef> getAllColumns() {
-        return null;
+        return getHistoryRealizationInstance().getAllColumns();
     }
 
     @Override
     public List<MeasureDesc> getMeasures() {
-        return null;
+        return getHistoryRealizationInstance().getMeasures();
     }
 
     @Override
@@ -124,20 +134,34 @@ public class HybridInstance extends RootPersistentEntity implements IRealization
     }
 
     public IRealization getHistoryRealizationInstance() {
+        if (historyRealizationInstance == null) {
+            this.init();
+        }
         return historyRealizationInstance;
     }
 
     public IRealization getRealTimeRealizationInstance() {
+        if (realTimeRealizationInstance == null) {
+            this.init();
+        }
         return realTimeRealizationInstance;
     }
 
     @Override
     public long getDateRangeStart() {
-        return historyRealizationInstance.getDateRangeStart();
+        return Math.min(getHistoryRealizationInstance().getDateRangeStart(), getRealTimeRealizationInstance().getDateRangeStart());
     }
 
     @Override
     public long getDateRangeEnd() {
-        return realTimeRealizationInstance.getDateRangeEnd();
+        return Math.max(getHistoryRealizationInstance().getDateRangeEnd(), getRealTimeRealizationInstance().getDateRangeEnd());
+    }
+
+    public String getModelName() {
+        if (getHistoryRealizationInstance() instanceof CubeInstance) {
+            return ((CubeInstance) historyRealizationInstance).getDescriptor().getModelName();
+        }
+
+        return ((IIInstance) historyRealizationInstance).getDescriptor().getModelName();
     }
 }

@@ -36,6 +36,18 @@ KylinApp.controller('CubeEditCtrl', function ($scope, $q, $routeParams, $locatio
         return temp;
     };
 
+    $scope.getColumnType = function (_column,table){
+        var columns = $scope.getColumnsByTable(table);
+        var type;
+        angular.forEach(columns,function(column){
+            if(_column === column.name){
+                type = column.datatype;
+                return;
+            }
+        });
+        return type;
+    };
+
     var ColFamily = function () {
         var index = 1;
         return function () {
@@ -108,17 +120,6 @@ KylinApp.controller('CubeEditCtrl', function ($scope, $q, $routeParams, $locatio
         // generate column family
         generateColumnFamily();
 
-        // Clean up objects used in cube creation
-//        angular.forEach($scope.cubeMetaFrame.dimensions, function (dimension, index) {
-//            delete dimension.status;
-//
-//            for (var key in dimension) {
-//                if (dimension.hasOwnProperty(key) && !dimension[key]) {
-//                    delete dimension[key];
-//                }
-//            }
-//        });
-
 
         if ($scope.metaModel.model.partition_desc.partition_date_column&&($scope.metaModel.model.partition_desc.partition_date_start|$scope.metaModel.model.partition_desc.partition_date_start==0)) {
             var dateStart = new Date($scope.metaModel.model.partition_desc.partition_date_start);
@@ -132,6 +133,12 @@ KylinApp.controller('CubeEditCtrl', function ($scope, $q, $routeParams, $locatio
             }
 
         }
+        //use cubedesc name as model name
+        if($scope.metaModel.model.name===""||angular.isUndefined($scope.metaModel.model.name)){
+            $scope.metaModel.model.name = $scope.cubeMetaFrame.name;
+        }
+
+        //set model ref for cubeDesc
         if($scope.cubeMetaFrame.model_name===""||angular.isUndefined($scope.cubeMetaFrame.model_name)){
             $scope.cubeMetaFrame.model_name = $scope.cubeMetaFrame.name;
         }
