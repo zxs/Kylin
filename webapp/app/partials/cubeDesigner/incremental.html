@@ -41,7 +41,7 @@
             <div class="row">
                 <label class="control-label col-xs-12 col-sm-3 no-padding-right font-color-default"><b>Partition Date Column</b></label>
                 <div class="col-xs-12 col-sm-6">
-
+                    <!--
                     <select style="width: 100%" chosen data-placeholder="e.g. TEST_KYLIN_FACT.CAL_DT"
                             ng-required="metaModel.model.partition_desc.partition_date_start"
                             ng-model="metaModel.model.partition_desc.partition_date_column"
@@ -49,6 +49,14 @@
                             ng-options="metaModel.model.fact_table+'.'+columns.name as metaModel.model.fact_table+'.'+columns.name for columns in getPartitonColumns(metaModel.model.fact_table)" >
                         <option value=""></option>
                     </select>
+                    -->
+                    <typeahead ng-if="state.mode=='edit'"
+                               ng-required="metaModel.model.partition_desc.partition_date_start"
+                               items="getColumnsByTable(metaModel.model.fact_table)"
+                               prompt="eg. CAL_DT or CONCAT(y, '-', m, '-', d)"
+                               title="name"
+                               model="metaModel.model.partition_desc.partition_date_column" >
+                    </typeahead>
                     <span ng-if="state.mode=='view'">
                         {{!!(metaModel.model.partition_desc.partition_date_column)?
                         metaModel.model.partition_desc.partition_date_column: 'Undefined'}}</span>
@@ -82,6 +90,7 @@
                         <ol class="text-info">
                             <li>Leave as default if this cube always need full build</li>
                             <li>Please indicate partition column of Fact Table in Hive</li>
+                            <li>Partition column accept expression like: concat(year, '-', month, '-', day)</li>
                             <li>Please indicate start date to just pull certain data from source</li>
                         </ol>
                     </div>

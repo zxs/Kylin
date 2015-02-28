@@ -319,7 +319,8 @@ public class CubeDesc extends RootPersistentEntity {
     public void setDescription(String description) {
         this.description = description;
     }
-
+  
+    @JsonProperty("fact_table")
     public String getFactTable() {
         return model.getFactTable().toLowerCase();
     }

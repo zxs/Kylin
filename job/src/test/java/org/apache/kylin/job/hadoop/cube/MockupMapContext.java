@@ -165,12 +165,12 @@ public class MockupMapContext {
                 throw new NotImplementedException();
             }
 
-          @Override
-          public boolean userClassesTakesPrecedence() {
-            return false;
-          }
-
-          @Override
+            @Override
+            public boolean userClassesTakesPrecedence() {
+              return false;
+            }
+            
+            @Override
             public Class<? extends InputFormat<?, ?>> getInputFormatClass() throws ClassNotFoundException {
                 throw new NotImplementedException();
             }

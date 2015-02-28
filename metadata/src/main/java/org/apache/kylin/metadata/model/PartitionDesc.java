@@ -47,7 +47,7 @@ public class PartitionDesc {
     private TblColRef partitionDateColumnRef;
 
     public void init(Map<String, Map<String, TblColRef>> columnMap) {
-        if (null != partitionDateColumn) {
+        if (null != partitionDateColumn && !partitionDateColumn.trim().isEmpty()) {
             partitionDateColumn = partitionDateColumn.toLowerCase();
 
             String[] columns = StringSplitter.split(partitionDateColumn, ".");

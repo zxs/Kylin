@@ -324,7 +324,10 @@ public class CubeSegment implements Comparable<CubeSegment>, ISegment {
 
     @Override
     public String toString() {
-        return Objects.toStringHelper(this).add("uuid", uuid).add("create_time_utc:", createTimeUTC).add("name", name).add("last_build_job_id", lastBuildJobID).add("status", status).toString();
+        return Objects.toStringHelper(this).add("uuid", uuid).add("create_time_utc:", createTimeUTC).add("name", name)
+            .add("last_build_job_id", lastBuildJobID).add("status", status)
+            .add("data_range_start", dateRangeStart).add("data_range_end", dateRangeEnd)
+            .toString();
     }
 
 

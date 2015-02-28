@@ -468,7 +468,7 @@ public class CubeManager implements IRealizationProvider {
             tableName = sb.toString();
         } while (this.usedStorageLocation.containsValue(tableName));
 
-        return tableName;
+        return tableName.toLowerCase();
     }
 
     public void promoteNewlyBuiltSegments(CubeInstance cube, CubeSegment... newSegments) throws IOException {
