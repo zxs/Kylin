@@ -19,9 +19,10 @@
 'use strict';
 
 KylinApp
-    .controller('CubesCtrl', function ($scope, $q, $routeParams, $location, $modal, MessageService, CubeDescService, CubeService, JobService, UserService,  ProjectService,SweetAlert,loadingRequest,$log,cubeConfig,ProjectModel,ModelService,MetaModel) {
+    .controller('CubesCtrl', function ($scope, $q, $routeParams, $location, $modal, MessageService, CubeDescService, CubeService, JobService, UserService,  ProjectService,SweetAlert,loadingRequest,$log,cubeConfig,ProjectModel,ModelService,MetaModel,CubeList) {
 
         $scope.cubeConfig = cubeConfig;
+        $scope.cubeList = CubeList;
 
         $scope.listParams={
             cubeName: $routeParams.cubeName,
@@ -30,7 +31,7 @@ KylinApp
         if($routeParams.projectName){
             $scope.projectModel.setSelectedProject($routeParams.projectName);
         }
-        $scope.cubes = [];
+        CubeList.removeAll();
         $scope.loading = false;
         $scope.action = {};
 
@@ -45,7 +46,6 @@ KylinApp
             }
             offset = (!!offset) ? offset : 0;
             limit = (!!limit) ? limit : 20;
-            var defer = $q.defer();
 
             var queryParam = {offset: offset, limit: limit};
             if ($scope.listParams.cubeName) {
@@ -54,40 +54,18 @@ KylinApp
                queryParam.projectName = $scope.projectModel.selectedProject;
 
             $scope.loading = true;
-            CubeService.list(queryParam, function (cubes) {
-                angular.forEach(cubes, function (cube, index) {
-                    if(cube.name){
-                        $scope.listAccess(cube, 'CubeInstance');
-                        if (cube.segments && cube.segments.length > 0) {
-                            for(var i= cube.segments.length-1;i>=0;i--){
-                                if(cube.segments[i].status==="READY"){
-                                    cube.last_build_time = cube.segments[i].last_build_time;
-                                    break;
-                                }else if(i===0){
-                                    cube.last_build_time = cube.create_time_utc;
-                                }
-                            }
-                        } else {
-                            cube.last_build_time = cube.create_time_utc;
-                        }
-                        if($routeParams.showDetail == 'true'){
-                            cube.showDetail = true;
-                            $scope.loadDetail(cube);
-                        }
-                    }
-                });
-                cubes = _.filter(cubes,function(cube){return cube.name!=undefined});
-                $scope.cubes = $scope.cubes.concat(cubes);
-                $scope.loading = false;
-                defer.resolve(cubes.length);
-            });
 
-            return defer.promise;
+            var defer = $q.defer();
+            return CubeList.list(queryParam).then(function(resp){
+                $scope.loading = false;
+                defer.resolve(resp);
+                defer.promise;
+            });
         };
 
         $scope.$watch('projectModel.selectedProject', function (newValue, oldValue) {
             if(newValue!=oldValue||newValue==null){
-                $scope.cubes=[];
+                CubeList.removeAll();
                 $scope.reload();
             }
 
@@ -98,10 +76,14 @@ KylinApp
         };
 
         $scope.loadDetail = function (cube) {
-            if (!cube.detail) {
+            var defer = $q.defer();
+            if(cube.detail){
+                defer.resolve(cube.detail);
+            } else {
                 CubeDescService.get({cube_name: cube.name}, {}, function (detail) {
                     if (detail.length > 0&&detail[0].hasOwnProperty("name")) {
                         cube.detail = detail[0];
+                        defer.resolve(cube.detail);
                     }else{
                         SweetAlert.swal('Oops...', "No cube detail info loaded.", 'error');
                     }
@@ -115,6 +97,8 @@ KylinApp
                     }
                 });
             }
+
+            return defer.promise;
         };
 
         $scope.getTotalSize = function (cubes) {
@@ -179,7 +163,7 @@ KylinApp
                 CubeService.purge({cubeId: cube.name}, {}, function (result) {
 
                     loadingRequest.hide();
-                    $scope.cubes=[];
+                    CubeList.removeAll();
                     $scope.reload();
                     SweetAlert.swal('Success!', 'Purge job was submitted successfully', 'success');
                 },function(e){
@@ -248,10 +232,11 @@ KylinApp
                     CubeService.drop({cubeId: cube.name}, {}, function (result) {
 
                     loadingRequest.hide();
-                    var cubeIndex = $scope.cubes.indexOf(cube);
-                    if (cubeIndex > -1) {
-                        $scope.cubes.splice(cubeIndex, 1);
-                    }
+//                    var cubeIndex = CubeList.cubes.indexOf(cube);
+//                    if (cubeIndex > -1) {
+//                        $scope.cubes.splice(cubeIndex, 1);
+//                    }
+                     CubeList.removeCube(cube);
                     SweetAlert.swal('Success!', 'Cube drop is done successfully', 'success');
 
                 },function(e){
@@ -271,70 +256,73 @@ KylinApp
         };
 
         $scope.startJobSubmit = function (cube) {
-            ModelService.get({model_name: cube.detail.model_name}, function (model) {
-                if (model.name) {
+            $scope.loadDetail(cube).then(function(cubeDetail){
+                ModelService.get({model_name: cubeDetail.model_name}, function (model) {
+                    if (model.name) {
                         $scope.metaModel = MetaModel;
                         $scope.metaModel.model= model;
-                    if (model.partition_desc.partition_date_column) {
-                        $modal.open({
-                            templateUrl: 'jobSubmit.html',
-                            controller: jobSubmitCtrl,
-                            resolve: {
-                                cube: function () {
-                                    return cube;
-                                },
-                                metaModel:function(){
-                                    return $scope.metaModel;
-                                },
-                                buildType: function () {
-                                    return 'BUILD';
-                                }
-                            }
-                        });
-                    }
-                    else {
-
-                        SweetAlert.swal({
-                            title: '',
-                            text: "Are you sure to start the build? ",
-                            type: '',
-                            showCancelButton: true,
-                            confirmButtonColor: '#DD6B55',
-                            confirmButtonText: "Yes",
-                            closeOnConfirm: true
-                        }, function(isConfirm) {
-                            if(isConfirm){
-
-                            loadingRequest.show();
-                            CubeService.rebuildCube(
-                                {
-                                    cubeId: cube.name
-                                },
-                                {
-                                    buildType: 'BUILD',
-                                    startTime: 0,
-                                    endTime: 0
-                                }, function (job) {
-
-                                    loadingRequest.hide();
-                                    SweetAlert.swal('Success!', 'Rebuild job was submitted successfully', 'success');
-                                },function(e){
-
-                                    loadingRequest.hide();
-                                    if(e.data&& e.data.exception){
-                                        var message =e.data.exception;
-                                        var msg = !!(message) ? message : 'Failed to take action.';
-                                        SweetAlert.swal('Oops...', msg, 'error');
-                                    }else{
-                                        SweetAlert.swal('Oops...', "Failed to take action.", 'error');
+                        if (model.partition_desc.partition_date_column) {
+                            $modal.open({
+                                templateUrl: 'jobSubmit.html',
+                                controller: jobSubmitCtrl,
+                                resolve: {
+                                    cube: function () {
+                                        return cube;
+                                    },
+                                    metaModel:function(){
+                                        return $scope.metaModel;
+                                    },
+                                    buildType: function () {
+                                        return 'BUILD';
                                     }
-                                });
-                            }
+                                }
+                            });
+                        }
+                        else {
 
-                        });
+                            SweetAlert.swal({
+                                title: '',
+                                text: "Are you sure to start the build? ",
+                                type: '',
+                                showCancelButton: true,
+                                confirmButtonColor: '#DD6B55',
+                                confirmButtonText: "Yes",
+                                closeOnConfirm: true
+                            }, function(isConfirm) {
+                                if(isConfirm){
+
+                                    loadingRequest.show();
+                                    CubeService.rebuildCube(
+                                        {
+                                            cubeId: cube.name
+                                        },
+                                        {
+                                            buildType: 'BUILD',
+                                            startTime: 0,
+                                            endTime: 0
+                                        }, function (job) {
+
+                                            loadingRequest.hide();
+                                            SweetAlert.swal('Success!', 'Rebuild job was submitted successfully', 'success');
+                                        },function(e){
+
+                                            loadingRequest.hide();
+                                            if(e.data&& e.data.exception){
+                                                var message =e.data.exception;
+                                                var msg = !!(message) ? message : 'Failed to take action.';
+                                                SweetAlert.swal('Oops...', msg, 'error');
+                                            }else{
+                                                SweetAlert.swal('Oops...', "Failed to take action.", 'error');
+                                            }
+                                        });
+                                }
+
+                            });
+                        }
                     }
-                }
+                });
             });
+
         };
 
         $scope.startRefresh = function (cube) {
@@ -372,9 +360,9 @@ KylinApp
         }
     });
 
-var jobSubmitCtrl = function ($scope, $modalInstance, CubeService, MessageService, $location, cube,metaModel, buildType,SweetAlert,loadingRequest) {
+var jobSubmitCtrl = function ($scope, $modalInstance, CubeService, MessageService, $location, cube,MetaModel, buildType,SweetAlert,loadingRequest) {
     $scope.cube = cube;
-    $scope.metaModel = metaModel;
+    $scope.metaModel = MetaModel;
     $scope.jobBuildRequest = {
         buildType: buildType,
         startTime: 0,

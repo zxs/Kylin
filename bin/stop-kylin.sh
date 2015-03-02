@@ -1,4 +1,21 @@
 #!/bin/sh
 
-ps -fu $USER | grep tomcat | grep -v "grep" | awk '{print $2}' | xargs kill
-echo "all tomcats started by $USER are killed"
+dir=$(dirname ${0})
+source ${dir}/check-env.sh
+
+if [ ! -f "${KYLIN_HOME}/pid" ]
+then
+    echo "no pid found"
+    exit 1
+fi
+
+pid=`cat ${KYLIN_HOME}/pid`
+if [ "$pid" = "" ]
+then
+    echo "pid is empty"
+    exit 1
+else
+    echo "stopping kylin:$pid"
+    kill $pid
+fi
+rm ${KYLIN_HOME}/pid

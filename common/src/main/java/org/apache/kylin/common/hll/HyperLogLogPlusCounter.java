@@ -18,28 +18,21 @@
 
 package org.apache.kylin.common.hll;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
-import org.apache.commons.compress.utils.IOUtils;
+import org.apache.kylin.common.util.BytesUtil;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import org.apache.kylin.common.util.BytesUtil;
-import com.ning.compress.lzf.LZFDecoder;
-import com.ning.compress.lzf.LZFEncoder;
 
 /**
  * About compression, test on HLLC data shows
  * 
- * - LZF compression ratio is around 65%-80%, fast - GZIP compression ratio is
- * around 41%-46%, very slow
+ * - LZF compression ratio is around 65%-80%, fast
+ * - GZIP compression ratio is around 41%-46%, very slow
  * 
  * @author yangli9
  */
@@ -66,22 +59,30 @@ public class HyperLogLogPlusCounter implements Comparable<HyperLogLogPlusCounter
     /** The larger p is, the more storage (2^p bytes), the better accuracy */
     private HyperLogLogPlusCounter(int p, HashFunction hashFunc) {
         this.p = p;
-        this.m = (int) Math.pow(2, p);
+        this.m = 1 << p;//(int) Math.pow(2, p);
         this.hashFunc = hashFunc;
         this.registers = new byte[m];
     }
 
     public void clear() {
-        for (int i = 0; i < m; i++)
-            registers[i] = 0;
+        byte zero = (byte) 0;
+        Arrays.fill(registers, zero);
+    }
+
+    public void add(int value) {
+        add(hashFunc.hashInt(value).asLong());
     }
 
     public void add(String value) {
-        add(hashFunc.hashString(value,Charset.defaultCharset()).asLong());
+        add(hashFunc.hashString(value, Charset.defaultCharset()).asLong());
     }
 
     public void add(byte[] value) {
         add(hashFunc.hashBytes(value).asLong());
+    }
+
+    public void add(byte[] value, int offset, int length) {
+        add(hashFunc.hashBytes(value, offset, length).asLong());
     }
 
     protected void add(long hash) {
@@ -168,63 +169,7 @@ public class HyperLogLogPlusCounter implements Comparable<HyperLogLogPlusCounter
 
     // ============================================================================
 
-    public static interface Compressor {
-
-        byte[] compress(ByteBuffer buf, int offset, int length) throws IOException;
-
-        byte[] decompress(ByteBuffer buf, int offset, int length) throws IOException;
-    }
-
-    static final Compressor GZIP_COMPRESSOR = new Compressor() {
-        @Override
-        public byte[] compress(ByteBuffer buf, int offset, int length) throws IOException {
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            GZIPOutputStream gzout = new GZIPOutputStream(bout);
-            gzout.write(buf.array(), offset, length);
-            gzout.close();
-            return bout.toByteArray();
-        }
-
-        @Override
-        public byte[] decompress(ByteBuffer buf, int offset, int length) throws IOException {
-            ByteArrayInputStream bin = new ByteArrayInputStream(buf.array(), offset, length);
-            GZIPInputStream gzin = new GZIPInputStream(bin);
-            ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            IOUtils.copy(gzin, bout);
-            gzin.close();
-            bout.close();
-            return bout.toByteArray();
-        }
-    };
-
-    static final Compressor LZF_COMPRESSOR = new Compressor() {
-        @Override
-        public byte[] compress(ByteBuffer buf, int offset, int length) throws IOException {
-            return LZFEncoder.encode(buf.array(), offset, length);
-        }
-
-        @Override
-        public byte[] decompress(ByteBuffer buf, int offset, int length) throws IOException {
-            return LZFDecoder.decode(buf.array(), offset, length);
-        }
-    };
-
-    public static final int COMPRESSION_THRESHOLD = Integer.MAX_VALUE; // bytes,
-                                                                       // disable
-                                                                       // due to
-                                                                       // slowness
-    public static final byte COMPRESSION_FLAG = (byte) 0x02;
-    public static final Compressor DEFAULT_COMPRESSOR = GZIP_COMPRESSOR; // LZF
-                                                                         // lib
-                                                                         // has
-                                                                         // a
-                                                                         // bug
-                                                                         // at
-                                                                         // the
-                                                                         // moment
-
     public void writeRegisters(final ByteBuffer out) throws IOException {
-        int startPos = out.position();
 
         final int indexLen = getRegisterIndexSize();
         int size = size();
@@ -250,30 +195,10 @@ public class HyperLogLogPlusCounter implements Comparable<HyperLogLogPlusCounter
                 out.put(registers[i]);
             }
         }
-
-        // do compression if needed
-        int len = out.position() - startPos;
-        if (len < COMPRESSION_THRESHOLD)
-            return;
-
-        scheme |= COMPRESSION_FLAG;
-        byte[] compressed = DEFAULT_COMPRESSOR.compress(out, startPos + 1, len - 1);
-        out.position(startPos);
-        out.put(scheme);
-        BytesUtil.writeVInt(compressed.length, out);
-        out.put(compressed);
     }
 
     public void readRegisters(ByteBuffer in) throws IOException {
         byte scheme = in.get();
-        if ((scheme & COMPRESSION_FLAG) > 0) {
-            scheme ^= COMPRESSION_FLAG;
-            int compressedLen = BytesUtil.readVInt(in);
-            int end = in.position() + compressedLen;
-            byte[] decompressed = DEFAULT_COMPRESSOR.decompress(in, in.position(), compressedLen);
-            in.position(end);
-            in = ByteBuffer.wrap(decompressed);
-        }
 
         if (scheme == 0) { // map scheme
             clear();
@@ -286,10 +211,16 @@ public class HyperLogLogPlusCounter implements Comparable<HyperLogLogPlusCounter
                 registers[key] = in.get();
             }
         } else { // array scheme
-            for (int i = 0; i < m; i++) {
-                registers[i] = in.get();
-            }
+            in.get(registers);
         }
+    }
+
+    public void writeRegistersArray(final ByteBuffer out) {
+        out.put(this.registers);
+    }
+
+    public void readRegistersArray(ByteBuffer in) {
+        in.get(registers, 0, m);
     }
 
     private int getRegisterIndexSize() {

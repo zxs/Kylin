@@ -18,10 +18,15 @@
 
 package org.apache.kylin.storage.hbase.coprocessor.endpoint;
 
-import com.google.common.collect.Lists;
+import java.nio.ByteBuffer;
+import java.util.List;
 
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.kylin.common.hll.HyperLogLogPlusCounter;
 import org.apache.kylin.common.util.BytesSerializer;
 import org.apache.kylin.common.util.BytesUtil;
+import org.apache.kylin.invertedindex.index.RawTableRecord;
 import org.apache.kylin.invertedindex.index.TableRecordInfo;
 import org.apache.kylin.invertedindex.index.TableRecordInfoDigest;
 import org.apache.kylin.metadata.measure.MeasureAggregator;
@@ -29,10 +34,8 @@ import org.apache.kylin.metadata.measure.fixedlen.FixedLenMeasureCodec;
 import org.apache.kylin.metadata.model.DataType;
 import org.apache.kylin.metadata.model.FunctionDesc;
 import org.apache.kylin.storage.hbase.coprocessor.CoprocessorConstants;
-import org.apache.hadoop.io.LongWritable;
 
-import java.nio.ByteBuffer;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author honma
@@ -40,10 +43,36 @@ import java.util.List;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class EndpointAggregators {
 
+    private enum MetricType {
+        Count, DimensionAsMetric, DistinctCount, Normal
+    }
+
+    private static class MetricInfo {
+        private MetricType type;
+        private int refIndex = -1;
+        private int precision = -1;
+
+        public MetricInfo(MetricType type, int refIndex, int presision) {
+            this.type = type;
+            this.refIndex = refIndex;
+            this.precision = presision;
+        }
+
+        public MetricInfo(MetricType type, int refIndex) {
+            this.type = type;
+            this.refIndex = refIndex;
+        }
+
+        public MetricInfo(MetricType type) {
+            this.type = type;
+        }
+
+    }
+
     public static EndpointAggregators fromFunctions(TableRecordInfo tableInfo, List<FunctionDesc> metrics) {
         String[] funcNames = new String[metrics.size()];
         String[] dataTypes = new String[metrics.size()];
-        int[] refColIndex = new int[metrics.size()];
+        MetricInfo[] metricInfos = new MetricInfo[metrics.size()];
 
         for (int i = 0; i < metrics.size(); i++) {
             FunctionDesc functionDesc = metrics.get(i);
@@ -53,36 +82,48 @@ public class EndpointAggregators {
             dataTypes[i] = functionDesc.getReturnType();
 
             if (functionDesc.isCount()) {
-                refColIndex[i] = -1;//-1 for count, -2 for metricOnDimension
-            } else if (functionDesc.isAppliedOnDimension()) {
-                refColIndex[i] = -2;
+                metricInfos[i] = new MetricInfo(MetricType.Count);
+            } else if (functionDesc.isDimensionAsMetric()) {
+                metricInfos[i] = new MetricInfo(MetricType.DimensionAsMetric);
             } else {
-                refColIndex[i] = tableInfo.findMetric(functionDesc.getParameter().getValue());
-                if (refColIndex[i] < 0) {
-                    throw new IllegalStateException("Column " + functionDesc.getParameter().getColRefs().get(0) + " is not found in II");
+                int index = tableInfo.findFactTableColumn(functionDesc.getParameter().getValue());
+                if (index < 0) {
+                    throw new IllegalStateException("Column " + functionDesc.getParameter().getValue() + " is not found in II");
+                }
+
+                if (functionDesc.isCountDistinct()) {
+                    metricInfos[i] = new MetricInfo(MetricType.DistinctCount, index, functionDesc.getReturnDataType().getPrecision());
+                } else {
+                    metricInfos[i] = new MetricInfo(MetricType.Normal, index);
                 }
             }
         }
 
-        return new EndpointAggregators(funcNames, dataTypes, refColIndex, tableInfo.getDigest());
+        return new EndpointAggregators(funcNames, dataTypes, metricInfos, tableInfo.getDigest());
     }
 
     final String[] funcNames;
     final String[] dataTypes;
-    final int[] refColIndex;
-    final TableRecordInfoDigest tableRecordInfo;
+    final MetricInfo[] metricInfos;
 
+    final transient TableRecordInfoDigest tableRecordInfoDigest;
+    final transient RawTableRecord rawTableRecord;
+    final transient ImmutableBytesWritable byteBuffer;
+    final transient HyperLogLogPlusCounter[] hllcs;
     final transient FixedLenMeasureCodec[] measureSerializers;
     final transient Object[] metricValues;
 
-    final LongWritable one = new LongWritable(1);
+    final LongWritable ONE = new LongWritable(1);
 
-    public EndpointAggregators(String[] funcNames, String[] dataTypes, int[] refColIndex, TableRecordInfoDigest tableInfo) {
+    public EndpointAggregators(String[] funcNames, String[] dataTypes, MetricInfo[] metricInfos, TableRecordInfoDigest tableInfo) {
         this.funcNames = funcNames;
         this.dataTypes = dataTypes;
-        this.refColIndex = refColIndex;
-        this.tableRecordInfo = tableInfo;
+        this.metricInfos = metricInfos;
+        this.tableRecordInfoDigest = tableInfo;
+        this.rawTableRecord = tableInfo.createTableRecordBytes();
+        this.byteBuffer = new ImmutableBytesWritable();
 
+        this.hllcs = new HyperLogLogPlusCounter[this.metricInfos.length];
         this.metricValues = new Object[funcNames.length];
         this.measureSerializers = new FixedLenMeasureCodec[funcNames.length];
         for (int i = 0; i < this.measureSerializers.length; ++i) {
@@ -90,8 +131,8 @@ public class EndpointAggregators {
         }
     }
 
-    public TableRecordInfoDigest getTableRecordInfo() {
-        return tableRecordInfo;
+    public TableRecordInfoDigest getTableRecordInfoDigest() {
+        return tableRecordInfoDigest;
     }
 
     public boolean isEmpty() {
@@ -100,33 +141,54 @@ public class EndpointAggregators {
 
     public MeasureAggregator[] createBuffer() {
         MeasureAggregator[] aggrs = new MeasureAggregator[funcNames.length];
-        for (int j = 0; j < aggrs.length; j++) {
-            //all fixed length measures can be aggregated as long
-            aggrs[j] = MeasureAggregator.create(funcNames[j], "long");
+        for (int i = 0; i < aggrs.length; i++) {
+            if (metricInfos[i].type == MetricType.DistinctCount) {
+                aggrs[i] = MeasureAggregator.create(funcNames[i], dataTypes[i]);
+            } else {
+                //all other fixed length measures can be aggregated as long
+                aggrs[i] = MeasureAggregator.create(funcNames[i], "long");
+            }
         }
         return aggrs;
     }
 
+    /**
+     * this method is heavily called at coprocessor side,
+     * Make sure as little object creation as possible
+     */
     public void aggregate(MeasureAggregator[] measureAggrs, byte[] row) {
-        int rawIndex = 0;
-        int columnCount = tableRecordInfo.getColumnCount();
 
-        //normal column values to aggregate
-        for (int columnIndex = 0; columnIndex < columnCount; ++columnIndex) {
-            if (tableRecordInfo.isMetrics(columnIndex)) {
-                for (int metricIndex = 0; metricIndex < refColIndex.length; ++metricIndex) {
-                    if (refColIndex[metricIndex] == columnIndex) {
-                        measureAggrs[metricIndex].aggregate(measureSerializers[metricIndex].read(row, rawIndex));
-                    }
-                }
+        rawTableRecord.setBytes(row, 0, row.length);
+
+        for (int metricIndex = 0; metricIndex < metricInfos.length; ++metricIndex) {
+            if (metricInfos[metricIndex].type == MetricType.Count) {
+                measureAggrs[metricIndex].aggregate(ONE);
+                continue;
             }
-            rawIndex += tableRecordInfo.length(columnIndex);
-        }
 
-        //aggregate for "count"
-        for (int i = 0; i < refColIndex.length; ++i) {
-            if (refColIndex[i] == -1) {
-                measureAggrs[i].aggregate(one);
+            if (metricInfos[metricIndex].type == MetricType.DimensionAsMetric) {
+                continue;
+            }
+
+            MetricInfo metricInfo = metricInfos[metricIndex];
+            MeasureAggregator aggregator = measureAggrs[metricIndex];
+            FixedLenMeasureCodec measureSerializer = measureSerializers[metricIndex];
+
+            //get the raw bytes
+            rawTableRecord.getValueBytes(metricInfo.refIndex, byteBuffer);
+
+            if (metricInfo.type == MetricType.Normal) {
+                aggregator.aggregate(measureSerializer.read(byteBuffer.get(), byteBuffer.getOffset()));
+            } else if (metricInfo.type == MetricType.DistinctCount) {
+                //TODO: for unified dictionary, this is okay. but if different data blocks uses different dictionary, we'll have to aggregate original data
+                HyperLogLogPlusCounter hllc = hllcs[metricIndex];
+                if (hllc == null) {
+                    int precision = metricInfo.precision;
+                    hllc = new HyperLogLogPlusCounter(precision);
+                }
+                hllc.clear();
+                hllc.add(byteBuffer.get(), byteBuffer.getOffset(), byteBuffer.getLength());
+                aggregator.aggregate(hllc);
             }
         }
     }
@@ -149,11 +211,12 @@ public class EndpointAggregators {
         return metricBytesOffset;
     }
 
-    public List<String> deserializeMetricValues(byte[] metricBytes, int offset) {
-        List<String> ret = Lists.newArrayList();
+    public List<Object> deserializeMetricValues(byte[] metricBytes, int offset) {
+        List<Object> ret = Lists.newArrayList();
         int metricBytesOffset = offset;
         for (int i = 0; i < measureSerializers.length; i++) {
-            String valueString = measureSerializers[i].toString(measureSerializers[i].read(metricBytes, metricBytesOffset));
+            measureSerializers[i].read(metricBytes, metricBytesOffset);
+            Object valueString = measureSerializers[i].getValue();
             metricBytesOffset += measureSerializers[i].getLength();
             ret.add(valueString);
         }
@@ -180,18 +243,37 @@ public class EndpointAggregators {
         public void serialize(EndpointAggregators value, ByteBuffer out) {
             BytesUtil.writeAsciiStringArray(value.funcNames, out);
             BytesUtil.writeAsciiStringArray(value.dataTypes, out);
-            BytesUtil.writeIntArray(value.refColIndex, out);
-            BytesUtil.writeByteArray(TableRecordInfoDigest.serialize(value.tableRecordInfo), out);
+
+            BytesUtil.writeVInt(value.metricInfos.length, out);
+            for (int i = 0; i < value.metricInfos.length; ++i) {
+                MetricInfo metricInfo = value.metricInfos[i];
+                BytesUtil.writeAsciiString(metricInfo.type.toString(), out);
+                BytesUtil.writeVInt(metricInfo.refIndex, out);
+                BytesUtil.writeVInt(metricInfo.precision, out);
+            }
+
+            BytesUtil.writeByteArray(TableRecordInfoDigest.serialize(value.tableRecordInfoDigest), out);
         }
 
         @Override
         public EndpointAggregators deserialize(ByteBuffer in) {
+
             String[] funcNames = BytesUtil.readAsciiStringArray(in);
             String[] dataTypes = BytesUtil.readAsciiStringArray(in);
-            int[] refColIndex = BytesUtil.readIntArray(in);
+
+            int metricInfoLength = BytesUtil.readVInt(in);
+            MetricInfo[] infos = new MetricInfo[metricInfoLength];
+            for (int i = 0; i < infos.length; ++i) {
+                MetricType type = MetricType.valueOf(BytesUtil.readAsciiString(in));
+                int refIndex = BytesUtil.readVInt(in);
+                int presision = BytesUtil.readVInt(in);
+                infos[i] = new MetricInfo(type, refIndex, presision);
+            }
+
             byte[] temp = BytesUtil.readByteArray(in);
             TableRecordInfoDigest tableInfo = TableRecordInfoDigest.deserialize(temp);
-            return new EndpointAggregators(funcNames, dataTypes, refColIndex, tableInfo);
+
+            return new EndpointAggregators(funcNames, dataTypes, infos, tableInfo);
         }
 
     }

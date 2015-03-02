@@ -18,26 +18,33 @@
 
 package org.apache.kylin.job.common;
 
-import com.google.common.base.Preconditions;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Constructor;
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
-import org.apache.kylin.job.constant.ExecutableConstants;
-import org.apache.kylin.job.constant.JobStepStatusEnum;
-import org.apache.kylin.job.exception.ExecuteException;
-import org.apache.kylin.job.execution.*;
-import org.apache.kylin.job.hadoop.AbstractHadoopJob;
-import org.apache.kylin.job.tools.HadoopStatusChecker;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapreduce.Cluster;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.JobID;
 import org.apache.hadoop.mapreduce.JobStatus;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.kylin.common.KylinConfig;
+import org.apache.kylin.common.util.ClassUtil;
+import org.apache.kylin.job.constant.ExecutableConstants;
+import org.apache.kylin.job.constant.JobStepStatusEnum;
+import org.apache.kylin.job.exception.ExecuteException;
+import org.apache.kylin.job.execution.AbstractExecutable;
+import org.apache.kylin.job.execution.ExecutableContext;
+import org.apache.kylin.job.execution.ExecutableState;
+import org.apache.kylin.job.execution.ExecuteResult;
+import org.apache.kylin.job.execution.Output;
+import org.apache.kylin.job.hadoop.AbstractHadoopJob;
+import org.apache.kylin.job.tools.HadoopStatusChecker;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.Constructor;
-import java.util.Map;
+import com.google.common.base.Preconditions;
 
 /**
  * Created by qianzhou on 12/25/14.
@@ -81,7 +88,6 @@ public class MapReduceExecutable extends AbstractExecutable {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     protected ExecuteResult doWork(ExecutableContext context) throws ExecuteException {
         final String mapReduceJobClass = getMapReduceJobClass();
@@ -95,7 +101,7 @@ public class MapReduceExecutable extends AbstractExecutable {
                 job = new Cluster(new Configuration()).getJob(JobID.forName(extra.get(ExecutableConstants.MR_JOB_ID)));
                 logger.info("mr_job_id:" + extra.get(ExecutableConstants.MR_JOB_ID + " resumed"));
             } else {
-                final Constructor<? extends AbstractHadoopJob> constructor = (Constructor<? extends AbstractHadoopJob>) Class.forName(mapReduceJobClass).getConstructor();
+                final Constructor<? extends AbstractHadoopJob> constructor = ClassUtil.forName(mapReduceJobClass, AbstractHadoopJob.class).getConstructor();
                 final AbstractHadoopJob hadoopJob = constructor.newInstance();
                 hadoopJob.setAsync(true); // so the ToolRunner.run() returns right away
                 logger.info("parameters of the MapReduceExecutable:");
@@ -117,17 +123,12 @@ public class MapReduceExecutable extends AbstractExecutable {
             }
             final StringBuilder output = new StringBuilder();
             final HadoopCmdOutput hadoopCmdOutput = new HadoopCmdOutput(job, output);
-            String rmWebHost = job.getConfiguration().get("yarn.resourcemanager.webapp.address");
-            if (StringUtils.isEmpty(rmWebHost)) {
-                return new ExecuteResult(ExecuteResult.State.ERROR, "yarn.resourcemanager.webapp.address is empty");
+
+            final String restStatusCheckUrl = getRestStatusCheckUrl(job, context.getConfig());
+            if (restStatusCheckUrl == null) {
+                logger.error("restStatusCheckUrl is null");
+                return new ExecuteResult(ExecuteResult.State.ERROR, "restStatusCheckUrl is null");
             }
-            if (rmWebHost.startsWith("http://") || rmWebHost.startsWith("https://")) {
-                //do nothing
-            } else {
-                rmWebHost = "http://" + rmWebHost;
-            }
-            logger.info("yarn.resourcemanager.webapp.address:" + rmWebHost);
-            final String restStatusCheckUrl = rmWebHost + "/ws/v1/cluster/apps/${job_id}?anonymous=true";
             String mrJobId = hadoopCmdOutput.getMrJobId();
             HadoopStatusChecker statusChecker = new HadoopStatusChecker(restStatusCheckUrl, mrJobId, output);
             JobStepStatusEnum status = JobStepStatusEnum.NEW;
@@ -166,6 +167,26 @@ public class MapReduceExecutable extends AbstractExecutable {
             logger.error("error execute " + this.toString(), e);
             return new ExecuteResult(ExecuteResult.State.ERROR, e.getLocalizedMessage());
         }
+    }
+
+    private String getRestStatusCheckUrl(Job job, KylinConfig config) {
+        final String yarnStatusCheckUrl = config.getYarnStatusCheckUrl();
+        if (yarnStatusCheckUrl != null) {
+            return yarnStatusCheckUrl;
+        } else {
+            logger.info(KylinConfig.KYLIN_JOB_YARN_APP_REST_CHECK_URL + " is not set, read from job configuration");
+        }
+        String rmWebHost = job.getConfiguration().get("yarn.resourcemanager.webapp.address");
+        if (StringUtils.isEmpty(rmWebHost)) {
+            return null;
+        }
+        if (rmWebHost.startsWith("http://") || rmWebHost.startsWith("https://")) {
+            //do nothing
+        } else {
+            rmWebHost = "http://" + rmWebHost;
+        }
+        logger.info("yarn.resourcemanager.webapp.address:" + rmWebHost);
+        return rmWebHost + "/ws/v1/cluster/apps/${job_id}?anonymous=true";
     }
 
     public long getMapReduceWaitTime() {

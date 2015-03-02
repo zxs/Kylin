@@ -1,11 +1,10 @@
 #!/bin/sh
 
 dir=$(dirname ${0})
+source ${dir}/check-env.sh
 
 tomcat_root=${dir}/../tomcat
 export tomcat_root
-
-sh ${dir}/check-env.sh || { exit 1; }
 
 #if [ ! -z "$KYLIN_LD_LIBRARY_PATH" ]
 #then
@@ -46,7 +45,7 @@ hbase -Djava.util.logging.config.file=${tomcat_root}/conf/logging.properties \
 -Djava.io.tmpdir=${tomcat_root}/temp  \
 -Dkylin.hive.dependency=${hive_dependency} \
 -Dspring.profiles.active=${spring_profile} \
-org.apache.hadoop.util.RunJar ${tomcat_root}/bin/bootstrap.jar  org.apache.catalina.startup.Bootstrap start > ${tomcat_root}/logs/kylin.log 2>&1 &
+org.apache.hadoop.util.RunJar ${tomcat_root}/bin/bootstrap.jar  org.apache.catalina.startup.Bootstrap start > ${tomcat_root}/logs/kylin.log 2>&1 & echo $! > ${KYLIN_HOME}/pid &
 echo "A new Kylin instance is started by $USER, stop it using \"stop-kylin.sh\""
 if [ "$useSandbox" = "true" ]
     then echo "Please visit http://<your_sandbox_ip>:7070/kylin to play with the cubes! (Useranme: ADMIN, Password: KYLIN)"
